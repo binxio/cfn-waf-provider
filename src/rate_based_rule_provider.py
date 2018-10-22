@@ -140,7 +140,7 @@ class RateBasedRuleProvider(ResourceProvider):
         return set(required_fields) - set(kwargs)
 
     def convert_property_types(self):
-        self.heuristic_convert_property_types()
+        self.heuristic_convert_property_types(self.properties)
 
 
 provider = RateBasedRuleProvider()
