@@ -5,7 +5,7 @@ Parameters:
   S3BucketPrefix:
     Type: String
     Default: 'binxio-waf-custom-provider'
-  WafCustomProviderZipFileName:
+  CFNCustomProviderZipFileName:
     Type: String
     Default: 'lambdas/cfn-waf-provider-latest.zip'
 Resources:
@@ -57,7 +57,7 @@ Resources:
       Description: Waf custom provider
       Code:
         S3Bucket: !Sub '${S3BucketPrefix}-${AWS::Region}'
-        S3Key: !Ref 'WafCustomProviderZipFileName'
+        S3Key: !Ref 'CFNCustomProviderZipFileName'
       FunctionName: binxio-cfn-waf-provider
       Handler: provider.handler
       MemorySize: 128

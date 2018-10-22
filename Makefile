@@ -95,7 +95,7 @@ deploy-provider: target/$(NAME)-$(VERSION).zip
 	aws --region $(AWS_REGION) cloudformation $(COMMAND)-stack \
                 --capabilities CAPABILITY_IAM \
                 --stack-name $(NAME) \
-                --template-body file://cloudformation/cfn-resource-provider.yaml \
+                --template-body file://cloudformation/cfn-waf-provider.yaml \
                 --parameters \
                         ParameterKey=S3BucketPrefix,ParameterValue=$(S3_BUCKET_PREFIX) \
                         ParameterKey=CFNCustomProviderZipFileName,ParameterValue=lambdas/$(NAME)-$(VERSION).zip

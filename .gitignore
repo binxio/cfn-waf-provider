@@ -14,3 +14,4 @@ tags
 venv/
 .eggs/
 /.idea/
+/target/
