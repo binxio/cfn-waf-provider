@@ -40,7 +40,7 @@ class RateBasedRuleProvider(ResourceProvider):
             status = self.wait_on_status(response['ChangeToken'])   # wait for the rule to finish creating
 
             if status['Success']:
-                if self.required_fields(kwargs):   # check if the rule needs to be updated with a predicate
+                if not self.missing_fields(kwargs):   # check if the rule needs to be updated with a predicate
                     print('Predicate detected in create request. Also updating the rule.')
                     self.update()
 
@@ -58,7 +58,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
     def update(self):
         kwargs = self.properties.copy()
-        missing = self.required_fields(kwargs)
+        missing = self.missing_fields(kwargs)
 
         if not missing:
             try:
@@ -129,7 +129,7 @@ class RateBasedRuleProvider(ResourceProvider):
             self.physical_resource_id = 'failed-to-create'
             self.fail(f'{error}')
 
-    def required_fields(self, kwargs):
+    def missing_fields(self, kwargs):
         required_fields = ['Action', 'Negated', 'Type', 'DataId']
 
         return set(required_fields) - set(kwargs)
