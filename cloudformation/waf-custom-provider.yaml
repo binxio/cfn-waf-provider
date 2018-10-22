@@ -1,0 +1,66 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Custom waf provider with rate based rule and predicate update support
+Parameters:
+  S3BucketPrefix:
+    Type: String
+    Default: 'binxio-waf-custom-provider'
+  WafCustomProviderZipFileName:
+    Type: String
+    Default: 'lambdas/waf-custom-provider.zip'
+Resources:
+  LambdaPolicy:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - LambdaRole
+    Properties:
+      PolicyName: CustomWafProvider
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - waf:CreateRateBasedRule
+              - waf:DeleteRateBasedRule
+              - waf:UpdateRateBasedRule
+              - waf:GetChangeToken
+            Resource:
+              - '*'
+          - Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource:
+              - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-waf-custom-provider'
+          - Effect: Allow
+            Action:
+              - logs:*
+            Resource: arn:aws:logs:*:*:*
+      Roles:
+        - !Ref 'LambdaRole'
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+  WafCustomProvider:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - LambdaRole
+    Properties:
+      Description: Waf custom provider
+      Code:
+        S3Bucket: !Sub '${S3BucketPrefix}-${AWS::Region}'
+        S3Key: !Ref 'WafCustomProviderZipFileName'
+      FunctionName: binxio-waf-custom-provider
+      Handler: provider.handler
+      MemorySize: 128
+      Role: !GetAtt 'LambdaRole.Arn'
+      Runtime: python3.6
+      Timeout: 300

@@ -1,0 +1,16 @@
+.idea/workspace.xml
+.idea/tasks.xml
+*.pyc
+.cache/
+
+dist/
+build/
+*.egg-info/
+
+.tox/
+.coverage
+tags
+
+venv/
+.eggs/
+/.idea/

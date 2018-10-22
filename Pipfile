@@ -1,0 +1,11 @@
+[packages]
+cfn-resource-provider = "*"
+ipython = "*"
+
+[dev-packages]
+boto3="*"
+mock = "*"
+pytest = "*"
+
+[requires]
+python_version = "3.6"
