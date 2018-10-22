@@ -30,31 +30,31 @@ class RateBasedRuleProvider(ResourceProvider):
         kwargs = self.properties.copy()
 
         try:
-            kwargs.update(client.get_change_token())
+            kwargs.update({'ChangeToken': client.get_change_token()['ChangeToken']})
             kwargs.pop('ServiceToken', None)
 
             response = client.create_rate_based_rule(**kwargs)
+
+            self.physical_resource_id = response['Rule']['RuleId']
+
+            status = self.wait_on_status(response['ChangeToken'])   # wait for the rule to finish creating
+
+            if status['Success']:
+                if self.required_fields(kwargs):   # check if the rule needs to be updated with a predicate
+                    print('Predicate detected in create request. Also updating the rule.')
+                    self.update()
+
+                    if status['Success']:
+                        print('Create and update are done.')
+                        self.success('Create and update are done.')
+                else:
+                    print('Create is done.')
+                    self.success('Create is done.')
+            else:
+                self.fail(status['Reason'])
         except ClientError as error:
             self.physical_resource_id = 'failed-to-create'
             self.fail(f'{error}')
-
-        self.physical_resource_id = response['Rule']['RuleId']
-
-        status = self.wait_on_status(response['ChangeToken'])   # wait for the rule to finish creating
-
-        if status['Success']:
-            if self.required_fields(kwargs):   # check if the rule needs to be updated with a predicate
-                print('Predicate detected in create request. Also updating the rule.')
-                self.update()
-
-                if status['Success']:
-                    print('Create and update are done.')
-                    self.success('Create and update are done.')
-            else:
-                print('Create is done.')
-                self.success('Create is done.')
-        else:
-            self.fail(status['Reason'])
 
     def update(self):
         kwargs = self.properties.copy()
@@ -62,7 +62,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
         if not missing:
             try:
-                kwargs.update(client.get_change_token())
+                kwargs.update({'ChangeToken': client.get_change_token()['ChangeToken']})
 
                 updates = {
                     'Updates': {
@@ -96,7 +96,7 @@ class RateBasedRuleProvider(ResourceProvider):
         kwargs = {'RuleId': self.physical_resource_id}
 
         try:
-            kwargs.update(client.get_change_token())
+            kwargs.update({'ChangeToken': client.get_change_token()['ChangeToken']})
             response = client.delete_rate_based_rule(**kwargs)
 
             status = self.wait_on_status(response['ChangeToken'])   # wait for the rule to finish deleting

@@ -1,8 +1,8 @@
-import src.rate_based_rule_provider
+import rate_based_rule_provider
 
 
 def handler(request, context):
     if request['ResourceType'] == 'Custom::RateBasedRule':
-        return src.rate_based_rule_provider.handler(request, context)
+        return rate_based_rule_provider.handler(request, context)
     else:
         print(f"Unknown resource type: {request['ResourceType']}")

@@ -1,5 +1,5 @@
 from mock import patch
-from src.rate_based_rule_provider import handler
+from rate_based_rule_provider import handler
 
 import uuid
 
