@@ -1,6 +1,7 @@
 [packages]
 cfn-resource-provider = "*"
 ipython = "*"
+"boto3" = "*"
 
 [dev-packages]
 boto3="*"

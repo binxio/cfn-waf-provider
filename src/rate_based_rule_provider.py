@@ -116,7 +116,10 @@ class RateBasedRuleProvider(ResourceProvider):
             else:
                 self.fail(status['Reason'])
         except ClientError as error:
-            self.fail(f'{error}')
+            if 'WAFNonexistentItemException' in error.response['Error']['Code']:
+                self.success()
+            else:
+                self.fail(f'{error}')
 
     def wait_on_status(self, change_token, interval=1, timeout=255):
         try:
