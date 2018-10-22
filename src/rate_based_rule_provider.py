@@ -2,6 +2,11 @@ from cfn_resource_provider import ResourceProvider
 import boto3
 import time
 from botocore.exceptions import ClientError
+import logging
+import os
+
+log = logging.getLogger()
+log.setLevel(os.environ.get("LOG_LEVEL", "DEBUG"))
 
 client = boto3.client('waf')
 
