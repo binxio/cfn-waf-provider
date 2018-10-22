@@ -12,6 +12,7 @@ Resources:
       RateLimit: 2800
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
   RateBasedRuleWithPredicate:
+    DependsOn: BaseRateBasedRule
     Type: Custom::RateBasedRule
     Properties:
       Name: WafRateBasedRulePredicate2

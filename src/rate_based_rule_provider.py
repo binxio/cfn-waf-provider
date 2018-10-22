@@ -35,13 +35,13 @@ class RateBasedRuleProvider(ResourceProvider):
         kwargs = self.properties.copy()
 
         try:
-            kwargs.update({'ChangeToken': client.get_change_token()['ChangeToken']})
             kwargs.pop('ServiceToken', None)
             kwargs.pop('Action', None)
             kwargs.pop('Negated', None)
             kwargs.pop('Type', None)
             kwargs.pop('DataId', None)
 
+            kwargs.update({'ChangeToken': client.get_change_token()['ChangeToken']})
             response = client.create_rate_based_rule(**kwargs)
 
             self.physical_resource_id = response['Rule']['RuleId']
@@ -71,8 +71,6 @@ class RateBasedRuleProvider(ResourceProvider):
 
         if not missing:
             try:
-                kwargs.update({'ChangeToken': client.get_change_token()['ChangeToken']})
-
                 updates = {
                     'Updates': {
                         'Action': kwargs['Action'],
@@ -83,9 +81,10 @@ class RateBasedRuleProvider(ResourceProvider):
                         }
                     }
                 }
-
                 kwargs.update(updates)
                 kwargs.pop('ServiceToken', None)
+
+                kwargs.update({'ChangeToken': client.get_change_token()['ChangeToken']})
 
                 response = client.update_rate_based_rule(**kwargs)
             except ClientError as error:
