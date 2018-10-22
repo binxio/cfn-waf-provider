@@ -6,22 +6,22 @@ Resources:
   BaseRateBasedRule:
     Type: Custom::RateBasedRule
     Properties:
-      Name: waf-rate-based-rule
-      MetricName: waf-rate-based-rule-metric
+      Name: WafRateBasedRule1
+      MetricName: wafratebasedrulemetric
       RateKey: IP
       RateLimit: 2800
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
   RateBasedRuleWithPredicate:
     Type: Custom::RateBasedRule
     Properties:
-      Name: waf-rate-based-rule-predicate
-      MetricName: waf-rate-based-rule-predicate-metric
+      Name: WafRateBasedRulePredicate2
+      MetricName: wafratebasedrulepredicatemetric
       RateKey: IP
       RateLimit: 3245
       Action: INSERT
       Negated: False
       Type: IPMatch
-      DataId: ipset-test-predicate
+      DataId: ipsettestpredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
 Outputs:
   BaseRateBasedRule:
