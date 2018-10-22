@@ -1,8 +1,8 @@
 include Makefile.mk
 
 NAME=cfn-waf-provider
-S3_BUCKET_PREFIX=binxio-public
-AWS_REGION=eu-central-1
+S3_BUCKET_PREFIX=binxio-waf-custom-provider
+AWS_REGION=eu-west-1
 ALL_REGIONS=$(shell printf "import boto3\nprint('\\\n'.join(map(lambda r: r['RegionName'], boto3.client('ec2').describe_regions()['Regions'])))\n" | python | grep -v '^$(AWS_REGION)$$')
 
 help:
@@ -62,7 +62,7 @@ do-push: deploy
 
 do-build: target/$(NAME)-$(VERSION).zip
 
-target/$(NAME)-$(VERSION).zip: provider requirements.txt
+target/$(NAME)-$(VERSION).zip: src requirements.txt
 	mkdir -p target/content
 	docker build --build-arg ZIPFILE=$(NAME)-$(VERSION).zip -t $(NAME)-lambda:$(VERSION) -f Dockerfile.lambda . && \
 		ID=$$(docker create $(NAME)-lambda:$(VERSION) /bin/true) && \

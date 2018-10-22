@@ -10,7 +10,7 @@ Resources:
       MetricName: waf-rate-based-rule-metric
       RateKey: IP
       RateLimit: 2800
-      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-waf-custom-provider'
+      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
   RateBasedRuleWithPredicate:
     Type: Custom::RateBasedRule
     Properties:
@@ -22,7 +22,7 @@ Resources:
       Negated: False
       Type: IPMatch
       DataId: ipset-test-predicate
-      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-waf-custom-provider'
+      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
 Outputs:
   BaseRateBasedRule:
     Value: !Sub '${BaseRateBasedRule.Name} ${BaseRateBasedRule.Type} ${BaseRateBasedRule.RateLimit}'

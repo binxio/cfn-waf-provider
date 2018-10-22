@@ -7,7 +7,7 @@ Parameters:
     Default: 'binxio-waf-custom-provider'
   WafCustomProviderZipFileName:
     Type: String
-    Default: 'lambdas/waf-custom-provider.zip'
+    Default: 'lambdas/cfn-waf-provider-latest.zip'
 Resources:
   LambdaPolicy:
     Type: AWS::IAM::Policy
@@ -30,7 +30,7 @@ Resources:
             Action:
               - lambda:InvokeFunction
             Resource:
-              - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-waf-custom-provider'
+              - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
           - Effect: Allow
             Action:
               - logs:*
@@ -58,7 +58,7 @@ Resources:
       Code:
         S3Bucket: !Sub '${S3BucketPrefix}-${AWS::Region}'
         S3Key: !Ref 'WafCustomProviderZipFileName'
-      FunctionName: binxio-waf-custom-provider
+      FunctionName: binxio-cfn-waf-provider
       Handler: provider.handler
       MemorySize: 128
       Role: !GetAtt 'LambdaRole.Arn'
