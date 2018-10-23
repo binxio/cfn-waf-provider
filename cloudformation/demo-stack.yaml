@@ -19,10 +19,11 @@ Resources:
       MetricName: wafratebasedrulepredicatemetric
       RateKey: IP
       RateLimit: 3245
-      Action: INSERT
-      Negated: False
-      Type: IPMatch
-      DataId: ipsettestpredicate
+      MatchPredicates:
+        -
+          Negated: False
+          Type: IPMatch
+          DataId: ipsettestpredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
 Outputs:
   BaseRateBasedRule:
