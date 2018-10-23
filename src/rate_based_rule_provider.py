@@ -166,7 +166,7 @@ class RateBasedRuleProvider(ResourceProvider):
             else:
                 self.fail(f'{error}')
 
-    def wait_on_status(self, change_token, current_retry, interval=0, max_interval=30, max_retries=15):
+    def wait_on_status(self, change_token, current_retry, interval=30, max_interval=30, max_retries=15):
         try:
             response = client.get_change_token_status(ChangeToken=change_token)
 
