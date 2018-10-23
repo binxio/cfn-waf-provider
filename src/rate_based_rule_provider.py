@@ -46,7 +46,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
             self.physical_resource_id = response['Rule']['RuleId']
 
-            status = self.wait_on_status(response['ChangeToken'])   # wait for the rule to finish creating
+            status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish creating
 
             if status['Success']:
                 if not self.missing_fields(kwargs):   # check if the rule needs to be updated with a predicate
@@ -91,7 +91,7 @@ class RateBasedRuleProvider(ResourceProvider):
             except ClientError as error:
                 self.fail(f'{error}')
 
-            status = self.wait_on_status(response['ChangeToken'])   # wait for the rule to finish updating
+            status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish updating
 
             if status['Success']:
                 print('Update is done.')
@@ -108,7 +108,7 @@ class RateBasedRuleProvider(ResourceProvider):
             kwargs.update({'ChangeToken': client.get_change_token()['ChangeToken']})
             response = client.delete_rate_based_rule(**kwargs)
 
-            status = self.wait_on_status(response['ChangeToken'])   # wait for the rule to finish deleting
+            status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish deleting
 
             if status['Success']:
                 print('Delete is done.')
