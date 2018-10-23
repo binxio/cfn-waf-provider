@@ -120,15 +120,18 @@ class RateBasedRuleProvider(ResourceProvider):
             else:
                 self.fail(f'{error}')
 
-    def wait_on_status(self, change_token, interval=1, timeout=255):
+    def wait_on_status(self, change_token, interval=10, max_interval=600):
         try:
             response = client.get_change_token_status(ChangeToken=change_token)
 
             if response['ChangeTokenStatus'] != 'INSYNC':
-                if interval > timeout:
-                    print(f"Timeout ({timeout}) reached, something must have gone wrong. "
+                if interval >= max_interval:
+                    print(f"Max wait interval ({max_interval}) reached, something must have gone wrong. "
                           f"Current status: {response['ChangeTokenStatus']}.")
-                    return {"Success": False, "Reason": f"Timeout ({timeout}) reached, something must have gone wrong."}
+                    return {
+                        "Success": False,
+                        "Reason": f"Max wait interval ({max_interval}) reached, something must have gone wrong."
+                    }
                 else:
                     print(f"Not done, current status is: {response['ChangeTokenStatus']}. "
                           f"Waiting {interval} seconds before retrying.")
