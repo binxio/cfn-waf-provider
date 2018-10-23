@@ -67,6 +67,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
     def update(self):
         kwargs = self.properties.copy()
+        kwargs.update({'RuleId': self.physical_resource_id})
         missing = self.missing_fields(kwargs)
 
         if not missing:
@@ -120,23 +121,25 @@ class RateBasedRuleProvider(ResourceProvider):
             else:
                 self.fail(f'{error}')
 
-    def wait_on_status(self, change_token, interval=10, max_interval=600):
+    def wait_on_status(self, change_token, current_retry, interval=10, max_interval=30, max_retries=15):
         try:
             response = client.get_change_token_status(ChangeToken=change_token)
 
             if response['ChangeTokenStatus'] != 'INSYNC':
-                if interval >= max_interval:
-                    print(f"Max wait interval ({max_interval}) reached, something must have gone wrong. "
+                if current_retry >= max_retries:
+                    print(f"Max reties ({max_retries}) reached, something must have gone wrong. "
                           f"Current status: {response['ChangeTokenStatus']}.")
                     return {
                         "Success": False,
-                        "Reason": f"Max wait interval ({max_interval}) reached, something must have gone wrong."
+                        "Reason": f"Max retries ({max_retries}) reached, something must have gone wrong."
                     }
                 else:
                     print(f"Not done, current status is: {response['ChangeTokenStatus']}. "
                           f"Waiting {interval} seconds before retrying.")
                     time.sleep(interval)
-                    return self.wait_on_status(change_token, interval=interval + interval)
+                    return self.wait_on_status(change_token,
+                                               current_retry=current_retry + 1,
+                                               interval=max(interval + interval, max_interval))
             else:
                 return {"Success": True, "Reason": ""}
         except ClientError as error:
