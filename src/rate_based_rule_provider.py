@@ -37,10 +37,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
         try:
             kwargs.pop('ServiceToken', None)
-            kwargs.pop('Action', None)
-            kwargs.pop('Negated', None)
-            kwargs.pop('Type', None)
-            kwargs.pop('DataId', None)
+            kwargs.pop('MatchPredicates', None)
 
             kwargs.update({'ChangeToken': client.get_change_token()['ChangeToken']})
             response = client.create_rate_based_rule(**kwargs)
