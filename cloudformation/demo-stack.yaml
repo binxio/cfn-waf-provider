@@ -3,16 +3,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Demo stack for the rate-based rule provider
 
 Resources:
-  BaseRateBasedRule:
-    Type: Custom::RateBasedRule
-    Properties:
-      Name: WafRateBasedRule1
-      MetricName: wafratebasedrulemetric
-      RateKey: IP
-      RateLimit: 2800
-      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
   RateBasedRuleWithPredicate:
-    DependsOn: BaseRateBasedRule
     Type: Custom::RateBasedRule
     Properties:
       Name: WafRateBasedRulePredicate2
@@ -25,8 +16,3 @@ Resources:
           Type: IPMatch
           DataId: ipsettestpredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
-Outputs:
-  BaseRateBasedRule:
-    Value: !Sub '${BaseRateBasedRule.Name} ${BaseRateBasedRule.Type} ${BaseRateBasedRule.RateLimit}'
-  BaseRateBasedRuleWithPredicate:
-    Value: !Sub '${BaseRateBasedRule.Name} ${BaseRateBasedRule.Type} ${BaseRateBasedRule.RateLimit}'

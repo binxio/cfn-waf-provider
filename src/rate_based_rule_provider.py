@@ -124,9 +124,12 @@ class RateBasedRuleProvider(ResourceProvider):
 
         updates = {'RuleId': self.physical_resource_id}
         updates.update({'RateLimit': self.properties['RateLimit']})
-        merged_list = deletes.append(inserts)
-        if merged_list:
-            updates.update({'Updates': [deletes, inserts]})   # merge delete and insert set
+
+        if deletes or inserts:
+            merged_list = list()
+            merged_list.append(deletes)
+            merged_list.append(inserts)
+            updates.update({'Updates': merged_list})   # merge delete and insert set
 
         try:
             updates.update({'ChangeToken': client.get_change_token()['ChangeToken']})
