@@ -63,14 +63,17 @@ class RateBasedRuleProvider(ResourceProvider):
 
                     update_status = self.execute_update(update)
 
-                    if update_status['Success']:
+                    if 'Success' in update_status and update_status['Success']:
                         print('Create and update are done.')
                         self.success('Create and update are done.')
+                    else:
+                        print('Updating the created rule failed.')
+                        self.fail('Updating the created rule failed.')
                 else:
                     print('Create is done.')
                     self.success('Create is done.')
             else:
-                self.fail(status['Reason'])
+                self.fail(create_status['Reason'])
         except ClientError as error:
             self.physical_resource_id = 'failed-to-create'
             self.fail(f'{error}')
@@ -194,7 +197,6 @@ class RateBasedRuleProvider(ResourceProvider):
             return status
         except ClientError as error:
             self.fail(f'{error}')
-            return
 
     def wait_on_status(self, change_token, current_retry, interval=30, max_interval=30, max_retries=15):
         try:
