@@ -22,13 +22,13 @@ class RateBasedRuleProvider(ResourceProvider):
                 "MetricName": {"type": "string"},
                 "RateKey": {"type": "string"},
                 "RateLimit": {"type": "integer"},
-                "MatchPredicates": {
+                "MatchPredicates": [{
                     "Negated": {"type": "boolean"},
                     "Type": {"type": "string",
                              "description": "IPMatch | ByteMatch | SqlInjectionMatch | GeoMatch | SizeConstraint | "
                                             "XssMatch | RegexMatch"},
                     "DataId": {"type": "string"}
-                }
+                }]
             }
         }
 
