@@ -45,9 +45,9 @@ class RateBasedRuleProvider(ResourceProvider):
             self.physical_resource_id = response['Rule']['RuleId']
 
             status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish creating
-
+            print(f"properties_before_create: {self.properties}")
             if status['Success']:
-                if 'Updates' in self.properties:   # check if the rule needs to be updated with predicate(s)
+                if 'MatchPredicates' in self.properties:   # check if the rule needs to be updated with predicate(s)
                     print('Predicate(s) detected in create request. Also updating the rule.')
                     self.update()
 
@@ -84,7 +84,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
         # check for each predicate if it already exists, if so delete it and insert a new one
         if not remove_all:
-            new_predicates = self.request['ResourceProperties']['Updates']
+            new_predicates = self.properties['MatchPredicates']
             print(f"new_predicates: {new_predicates}")
 
             for new_predicate in new_predicates:
@@ -126,7 +126,7 @@ class RateBasedRuleProvider(ResourceProvider):
         updates.update({'RateLimit': self.properties['RateLimit']})
         merged_list = [deletes, inserts]
         if merged_list:
-            updates.update({'Updates': [deletes, inserts]})   # merge delete and insert set
+            updates.update({'MatchPredicates': [deletes, inserts]})   # merge delete and insert set
 
         try:
             updates.update({'ChangeToken': client.get_change_token()['ChangeToken']})
@@ -144,7 +144,8 @@ class RateBasedRuleProvider(ResourceProvider):
             self.fail(f'{error}')
 
     def delete(self):
-        self.update(remove_all=True)    # remove all predicates
+        if 'MatchPredicates' in self.properties['ResourceProperties']:
+            self.update(remove_all=True)    # remove all predicates
 
         delete_request = {'RuleId': self.physical_resource_id}
 
