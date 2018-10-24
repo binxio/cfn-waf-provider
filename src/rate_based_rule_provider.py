@@ -22,13 +22,13 @@ class RateBasedRuleProvider(ResourceProvider):
                 "MetricName": {"type": "string"},
                 "RateKey": {"type": "string"},
                 "RateLimit": {"type": "integer"},
-                "MatchPredicates": [{
+                "MatchPredicates": {
                     "Negated": {"type": "boolean"},
                     "Type": {"type": "string",
                              "description": "IPMatch | ByteMatch | SqlInjectionMatch | GeoMatch | SizeConstraint | "
                                             "XssMatch | RegexMatch"},
                     "DataId": {"type": "string"}
-                }]
+                }
             }
         }
 
@@ -225,7 +225,29 @@ class RateBasedRuleProvider(ResourceProvider):
             self.fail(f'{error}')
 
     def convert_property_types(self):
-        self.heuristic_convert_property_types(self.properties)
+        def check_int(i):
+            try:
+                int(i)
+                return True
+            except ValueError:
+                return False
+
+        for name in self.properties:
+            if isinstance(self.properties[name], dict):
+                self.heuristic_convert_property_types(self.properties[name])
+            elif isinstance(self.properties[name], list):
+                for prop in self.properties[name]:
+                    self.heuristic_convert_property_types(prop)
+            elif isinstance(self.properties[name], str):
+                v = str(self.properties[name])
+                if v.lower() == 'true':
+                    self.properties[name] = True
+                elif v.lower() == 'false':
+                    self.properties[name] = False
+                elif check_int(v):
+                    self.properties[name] = int(v)
+                else:
+                    pass  # leave it a string.
 
 
 provider = RateBasedRuleProvider()
