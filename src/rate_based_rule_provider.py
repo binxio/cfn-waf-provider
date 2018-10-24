@@ -127,8 +127,8 @@ class RateBasedRuleProvider(ResourceProvider):
 
         if deletes or inserts:
             merged_list = list()
-            merged_list.append(deletes)
-            merged_list.append(inserts)
+            merged_list.extend(deletes)
+            merged_list.extend(inserts)
             updates.update({'Updates': merged_list})   # merge delete and insert set
 
         try:
