@@ -35,4 +35,8 @@ Resources:
           Negated: False
           Type: IPMatch
           DataId: !Ref IpSetTestPredicate
+        -
+          Negated: False
+          Type: SqlInjectionMatch
+          DataId: !Ref SqlInjectionMatchSetTestPredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
