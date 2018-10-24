@@ -148,7 +148,7 @@ class RateBasedRuleProvider(ResourceProvider):
             if not missing:
                 old_predicate = find_old_predicate(new_predicate, old_predicates)
                 print(f"old_predicate ==>> {old_predicate}")
-                old_predicates.pop(old_predicate)   # remove from predicate list
+                old_predicates = [p for p in old_predicates if p != old_predicate]  # remove from predicate list
                 if old_predicate is not None and new_predicate != old_predicate:
                     deletes.append({
                         'Action': 'DELETE',
