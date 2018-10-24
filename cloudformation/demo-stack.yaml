@@ -12,7 +12,7 @@ Resources:
       RateLimit: 3245
       MatchPredicates:
         -
-          Negated: False
+          Negated: false
           Type: IPMatch
           DataId: ipsettestpredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'

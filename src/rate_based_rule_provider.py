@@ -127,7 +127,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
         if deletes or inserts:
             merged_list = list(deletes + inserts)   # merge delete and insert set
-            updates.update({'Updates': merged_list})   
+            updates.update({'Updates': merged_list})
 
         try:
             updates.update({'ChangeToken': client.get_change_token()['ChangeToken']})
