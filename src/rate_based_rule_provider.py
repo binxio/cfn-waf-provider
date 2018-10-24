@@ -49,7 +49,19 @@ class RateBasedRuleProvider(ResourceProvider):
             if status['Success']:
                 if 'MatchPredicates' in self.properties:   # check if the rule needs to be updated with predicate(s)
                     print('Predicate(s) detected in create request. Also updating the rule.')
-                    self.update()
+
+                    update = {'RuleId': self.physical_resource_id}
+                    update.update({'RateLimit': self.properties['RateLimit']})
+
+                    predicates = []
+                    for predicate in self.properties['MatchPredicates']:
+                        predicates.append({
+                            'Action': 'INSERT',
+                            'Predicate': predicate
+                        })
+                    update.update({'Updates': predicates})
+
+                    self.execute_update(update)
 
                     if status['Success']:
                         print('Create and update are done.')
@@ -63,90 +75,32 @@ class RateBasedRuleProvider(ResourceProvider):
             self.physical_resource_id = 'failed-to-create'
             self.fail(f'{error}')
 
-    def update(self, remove_all=False):
-        def find_old_predicate(new_pred, old_preds):
-            for old_pred in old_preds:
-                if new_pred['DataId'] == old_pred['DataId']:
-                    return old_pred
-                else:
-                    return None
-
-        def missing_fields(kwargs):
-            required_fields = ['Negated', 'Type', 'DataId']
-
-            return set(required_fields) - set(kwargs)
-
+    def update(self):
         old_predicates = {} if 'MatchPredicates' not in self.old_properties else self.old_properties['MatchPredicates']
         print(f"old_predicates: {old_predicates}")
 
-        deletes = []
-        inserts = []
+        if 'MatchPredicates' in self.properties:
+            new_predicates = self.properties['MatchPredicates']     # get new predicates from request
+            update_request = self.create_update_request(old_predicates, new_predicates)
+        else:
+            self.fail(f"No match predicates found in update request")
 
-        # check for each predicate if it already exists, if so delete it and insert a new one
-        if not remove_all:
-            new_predicates = self.properties['MatchPredicates']
-            print(f"new_predicates: {new_predicates}")
-
-            for new_predicate in new_predicates:
-                missing = missing_fields(new_predicate)
-                print(f"missing ==>> {missing}")
-                if not missing:
-                    old_predicate = find_old_predicate(new_predicate, old_predicates)
-                    print(f"old_predicate ==>> {old_predicate}")
-                    old_predicates.pop(old_predicate, None)   # remove from predicate list
-                    if old_predicate is not None and new_predicate != old_predicate:
-                        deletes.append({
-                                    'Action': 'DELETE',
-                                    'Predicate': old_predicate
-                        })
-                        inserts.append({
-                                    'Action': 'INSERT',
-                                    'Predicate': new_predicate
-                        })
-                    elif old_predicate is None:
-                        inserts.append({
-                            'Action': 'INSERT',
-                            'Predicate': new_predicate
-                        })
-                else:
-                    self.fail(f"Predicate {new_predicate} is missing required fields: {missing}")
-                    return
-
-        # delete any predicates that are no longer present in the update request
-        for old_predicate in old_predicates:
-            deletes.append({
-                'Action': 'DELETE',
-                'Predicate': old_predicate
-            })
-
-        print(f"delete_set: {deletes}")
-        print(f"insert_set: {inserts}")
-
-        updates = {'RuleId': self.physical_resource_id}
-        updates.update({'RateLimit': self.properties['RateLimit']})
-
-        if deletes or inserts:
-            merged_list = list(deletes + inserts)   # merge delete and insert set
-            updates.update({'Updates': merged_list})
-
-        try:
-            updates.update({'ChangeToken': client.get_change_token()['ChangeToken']})
-            print(f"updates: {updates}")
-            response = client.update_rate_based_rule(**updates)
-
-            status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish updating
-
-            if status['Success']:
-                print('Update is done.')
-                self.success('Update is done.')
-            else:
-                self.fail(status['Reason'])
-        except ClientError as error:
-            self.fail(f'{error}')
+        self.execute_update(update_request)
 
     def delete(self):
         if 'MatchPredicates' in self.properties:
-            self.update(remove_all=True)    # remove all predicates
+            update = {'RuleId': self.physical_resource_id}
+            update.update({'RateLimit': self.properties['RateLimit']})
+
+            predicates = []
+            for predicate in self.properties['MatchPredicates']:
+                predicates.append({
+                    'Action': 'DELETE',
+                    'Predicate': predicate
+                })
+            update.update({'Updates': predicates})
+
+            self.execute_update(update)
 
         delete_request = {'RuleId': self.physical_resource_id}
 
@@ -166,6 +120,84 @@ class RateBasedRuleProvider(ResourceProvider):
                 self.success()
             else:
                 self.fail(f'{error}')
+
+    def create_update_request(self, old_predicates, new_predicates):
+        def find_old_predicate(new_pred, old_preds):
+            for old_pred in old_preds:
+                if new_pred['DataId'] == old_pred['DataId']:
+                    return old_pred
+                else:
+                    return None
+
+        def missing_fields(kwargs):
+            required_fields = ['Negated', 'Type', 'DataId']
+            return set(required_fields) - set(kwargs)
+
+        deletes = []
+        inserts = []
+
+        print(f"new_predicates: {new_predicates}")
+
+        # check for each predicate if it already exists, if so delete it and insert a new one
+        for new_predicate in new_predicates:
+            missing = missing_fields(new_predicate)
+            print(f"missing ==>> {missing}")
+            if not missing:
+                old_predicate = find_old_predicate(new_predicate, old_predicates)
+                print(f"old_predicate ==>> {old_predicate}")
+                old_predicates.pop(old_predicate, None)   # remove from predicate list
+                if old_predicate is not None and new_predicate != old_predicate:
+                    deletes.append({
+                        'Action': 'DELETE',
+                        'Predicate': old_predicate
+                    })
+                    inserts.append({
+                        'Action': 'INSERT',
+                        'Predicate': new_predicate
+                    })
+                elif old_predicate is None:
+                    inserts.append({
+                        'Action': 'INSERT',
+                        'Predicate': new_predicate
+                    })
+            else:
+                self.fail(f"Predicate {new_predicate} is missing required fields: {missing}")
+                return
+
+        # delete any predicates that are no longer present in the update request
+        for old_predicate in old_predicates:
+            deletes.append({
+                'Action': 'DELETE',
+                'Predicate': old_predicate
+            })
+
+        print(f"delete_set: {deletes}")
+        print(f"insert_set: {inserts}")
+
+        update_request = {'RuleId': self.physical_resource_id}
+        update_request.update({'RateLimit': self.properties['RateLimit']})
+
+        if deletes or inserts:
+            merged_list = list(deletes + inserts)   # merge delete and insert set
+            update_request.update({'Updates': merged_list})
+
+        return update_request
+
+    def execute_update(self, update_request):
+        try:
+            update_request.update({'ChangeToken': client.get_change_token()['ChangeToken']})
+            print(f"updates: {update_request}")
+            response = client.update_rate_based_rule(**update_request)
+
+            status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish updating
+
+            if status['Success']:
+                print('Update is done.')
+                self.success('Update is done.')
+            else:
+                self.fail(status['Reason'])
+        except ClientError as error:
+            self.fail(f'{error}')
 
     def wait_on_status(self, change_token, current_retry, interval=30, max_interval=30, max_retries=15):
         try:
