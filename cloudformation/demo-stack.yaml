@@ -6,13 +6,24 @@ Resources:
   IpSetTestPredicate:
     Type: AWS::WAF::IPSet
     Properties:
+      Name: ipset test predicate
       IPSetDescriptors:
       -
         Type: IPV4
         Value: 192.0.2.0/24
-      Name: test for ipset predicate
+  SqlInjectionMatchSetTestPredicate:
+    Type: AWS::WAF::SqlInjectionMatchSet
+    Properties:
+      Name: sql injection matchset test predicate
+      SqlInjectionMatchTuples:
+      -
+        FieldToMatch:
+          Type: URI
+        TextTransformation: NONE
   RateBasedRuleWithPredicate:
-    DependsOn: IpSetTestPredicate
+    DependsOn:
+    - IpSetTestPredicate
+    - SqlInjectionMatchSetTestPredicate
     Type: Custom::RateBasedRule
     Properties:
       Name: WafRateBasedRulePredicate2
