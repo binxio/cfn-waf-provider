@@ -3,7 +3,16 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Demo stack for the rate-based rule provider
 
 Resources:
+  IpSetTestPredicate:
+    Type: AWS::WAF::IPSet
+    Properties:
+      IPSetDescriptors:
+      -
+        Type: IPV4
+        Value: 192.0.2.0/24
+      Name: test for ipset predicate
   RateBasedRuleWithPredicate:
+    DependsOn: IpSetTestPredicate
     Type: Custom::RateBasedRule
     Properties:
       Name: WafRateBasedRulePredicate2
@@ -14,5 +23,5 @@ Resources:
         -
           Negated: False
           Type: IPMatch
-          DataId: ipsettestpredicate
+          DataId: !Ref IpSetTestPredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
