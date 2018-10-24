@@ -145,7 +145,7 @@ class RateBasedRuleProvider(ResourceProvider):
             self.fail(f'{error}')
 
     def delete(self):
-        if 'MatchPredicates' in self.properties['ResourceProperties']:
+        if 'MatchPredicates' in self.properties:
             self.update(remove_all=True)    # remove all predicates
 
         delete_request = {'RuleId': self.physical_resource_id}
