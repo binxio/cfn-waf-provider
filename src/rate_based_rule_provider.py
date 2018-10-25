@@ -79,7 +79,8 @@ class RateBasedRuleProvider(ResourceProvider):
             self.fail(f'{error}')
 
     def update(self):
-        old_predicates = {} if 'MatchPredicates' not in self.old_properties else self.old_properties['MatchPredicates']
+        old_predicates = {} if 'MatchPredicates' not in self.old_properties else \
+            self.convert_properties(self.old_properties['MatchPredicates'])
         print(f"old_predicates: {old_predicates}")
 
         if 'MatchPredicates' in self.properties:
@@ -225,6 +226,9 @@ class RateBasedRuleProvider(ResourceProvider):
             self.fail(f'{error}')
 
     def convert_property_types(self):
+        self.convert_properties(self.properties)
+
+    def convert_properties(self, properties):
         def check_int(i):
             try:
                 int(i)
@@ -232,20 +236,20 @@ class RateBasedRuleProvider(ResourceProvider):
             except ValueError:
                 return False
 
-        for name in self.properties:
-            if isinstance(self.properties[name], dict):
-                self.heuristic_convert_property_types(self.properties[name])
-            elif isinstance(self.properties[name], list):
-                for prop in self.properties[name]:
-                    self.heuristic_convert_property_types(prop)
-            elif isinstance(self.properties[name], str):
-                v = str(self.properties[name])
+        for name in properties:
+            if isinstance(properties[name], dict):
+                self.convert_properties(properties[name])
+            elif isinstance(properties[name], list):
+                for prop in properties[name]:
+                    self.convert_properties(prop)
+            elif isinstance(properties[name], str):
+                v = str(properties[name])
                 if v.lower() == 'true':
-                    self.properties[name] = True
+                    properties[name] = True
                 elif v.lower() == 'false':
-                    self.properties[name] = False
+                    properties[name] = False
                 elif check_int(v):
-                    self.properties[name] = int(v)
+                    properties[name] = int(v)
                 else:
                     pass  # leave it a string.
 
