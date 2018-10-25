@@ -4,22 +4,31 @@ The AWS Web Application Firewall (WAF) is a managed firewall service which suppo
 options in the form of rules. These rules are linked a web access control ist (ACL) which in turn is attached to an 
 Amazon Cloudfront or Application Load Balancer.
 
- However one of the rule types that the WAF provides is not creatable using Cloudformation.
+
+##  What is a Rate-based Rule in AWS WAF?
+   
+Rate-based Rules are a new type of Rule that can be configured in [AWS WAF](https://aws.amazon.com/waf/faq/). 
+This feature allows you to specify the number of web requests that are allowed by a client IP in a trailing, 
+continuously updated, 5 minute period. If an IP address breaches the configured limit, new requests will be 
+blocked until the request rate falls below the configured threshold.
 
 
+## Why do I need a custom resource provider?
 
+While most WAF resources can be deployed using Cloudformation. Rate-based rules are not supported. Since we consider
+it a best practice to deploy your infrastructure as code we want to have this functionality available to us. This
+custom resource provider does exactly that!
 
-## How do I request certificates fully automatically?
+## How do I use it?
 
 As a prerequisite, you need to have the hosted zones for the domain names on your certificate in Route53. If you have that,
 you can fully automate the provisioning of certificates, with the following resources:
 
-1. [Custom::Certificate](docs/Certificate.md) to request a certificate without waiting for it to be issued
-3. [Custom::CertificateDNSRecord](docs/CertificateDNSRecord) which will obtain the DNS record for a domain name on the certificate.
-3. [Custom::IssuedCertificate](docs/IssuedCertificate.md) which will activately wait until the certificate is issued.
-4. [AWS::Route53::ResourceRecordSet](https://docs.aws.amazon.com/Route53/latest/APIReference/API_ResourceRecordSet.html) to create the validation DNS record.
+1. [Custom::RateBasedRule](docs/Certificate.md) to request a certificate without waiting for it to be issued
+3. [AWS::WAF::IPSet](docs/CertificateDNSRecord) which will obtain the DNS record for a domain name on the certificate.
+3. [AWS::WAF::WebACL](docs/IssuedCertificate.md) which will activately wait until the certificate is issued.
 
-Checkout the sample in [cloudformation/demo-stack.yaml](cloudformation/demo-stack.yaml).
+Checkout the sample rules in [cloudformation/demo-stack.yaml](cloudformation/demo-stack.yaml).
 
 ## Installation
 

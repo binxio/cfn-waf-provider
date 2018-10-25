@@ -21,10 +21,22 @@ Resources:
           Type: URI
         TextTransformation: NONE
   RateBasedRuleWithPredicate:
+    DependsOn:
+    - IpSetTestPredicate
+    - SqlInjectionMatchSetTestPredicate
     Type: Custom::RateBasedRule
     Properties:
       Name: WafRateBasedRulePredicate2
       MetricName: wafratebasedrulepredicatemetric
       RateKey: IP
       RateLimit: 3245
+      MatchPredicates:
+        -
+          Negated: False
+          Type: IPMatch
+          DataId: !Ref IpSetTestPredicate
+        -
+          Negated: False
+          Type: SqlInjectionMatch
+          DataId: !Ref SqlInjectionMatchSetTestPredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
