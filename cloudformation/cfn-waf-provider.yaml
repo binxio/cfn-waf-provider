@@ -64,4 +64,4 @@ Resources:
       MemorySize: 128
       Role: !GetAtt 'LambdaRole.Arn'
       Runtime: python3.6
-      Timeout: 600
+      Timeout: 900

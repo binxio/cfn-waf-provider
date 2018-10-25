@@ -46,6 +46,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
             create_status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish creating
             print(f"properties_before_create: {self.properties}")
+
             if create_status['Success']:
                 if 'MatchPredicates' in self.properties:   # check if the rule needs to be updated with predicate(s)
                     print('Predicate(s) detected in create request. Also updating the rule.')
@@ -79,8 +80,8 @@ class RateBasedRuleProvider(ResourceProvider):
             self.fail(f'{error}')
 
     def update(self):
-        old_predicates = {} if 'MatchPredicates' not in self.old_properties else \
-            self.convert_properties(self.old_properties['MatchPredicates'])
+        self.convert_properties(self.old_properties)    # also convert the old properties
+        old_predicates = {} if 'MatchPredicates' not in self.old_properties else self.old_properties['MatchPredicates']
         print(f"old_predicates: {old_predicates}")
 
         if 'MatchPredicates' in self.properties:
@@ -92,6 +93,7 @@ class RateBasedRuleProvider(ResourceProvider):
         self.execute_update(update_request)
 
     def delete(self):
+        # Check for predicates, if so delete them first
         if 'MatchPredicates' in self.properties:
             update = {'RuleId': self.physical_resource_id}
             update.update({'RateLimit': self.properties['RateLimit']})
@@ -105,6 +107,7 @@ class RateBasedRuleProvider(ResourceProvider):
             update.update({'Updates': predicates})
             self.execute_update(update, remove_all=True)
 
+        # Perform the deletion of the rule
         try:
             delete_request = {'RuleId': self.physical_resource_id}
             delete_request.update({'ChangeToken': client.get_change_token()['ChangeToken']})
@@ -229,29 +232,12 @@ class RateBasedRuleProvider(ResourceProvider):
         self.convert_properties(self.properties)
 
     def convert_properties(self, properties):
-        def check_int(i):
-            try:
-                int(i)
-                return True
-            except ValueError:
-                return False
-
         for name in properties:
-            if isinstance(properties[name], dict):
-                self.convert_properties(properties[name])
-            elif isinstance(properties[name], list):
+            if isinstance(name, list):
                 for prop in properties[name]:
-                    self.convert_properties(prop)
-            elif isinstance(properties[name], str):
-                v = str(properties[name])
-                if v.lower() == 'true':
-                    properties[name] = True
-                elif v.lower() == 'false':
-                    properties[name] = False
-                elif check_int(v):
-                    properties[name] = int(v)
-                else:
-                    pass  # leave it a string.
+                    self.heuristic_convert_property_types(prop)
+            else:
+                self.heuristic_convert_property_types(properties)
 
 
 provider = RateBasedRuleProvider()
