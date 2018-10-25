@@ -102,12 +102,10 @@ class RateBasedRuleProvider(ResourceProvider):
                     'Predicate': predicate
                 })
             update.update({'Updates': predicates})
-
-            self.execute_update(update)
-
-        delete_request = {'RuleId': self.physical_resource_id}
-
+            self.execute_update(update, remove_all=True)
+            
         try:
+            delete_request = {'RuleId': self.physical_resource_id}
             delete_request.update({'ChangeToken': client.get_change_token()['ChangeToken']})
             response = client.delete_rate_based_rule(**delete_request)
 
@@ -186,7 +184,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
         return update_request
 
-    def execute_update(self, update_request):
+    def execute_update(self, update_request, remove_all=False):
         try:
             update_request.update({'ChangeToken': client.get_change_token()['ChangeToken']})
             print(f"updates: {update_request}")
@@ -196,7 +194,10 @@ class RateBasedRuleProvider(ResourceProvider):
 
             return status
         except ClientError as error:
-            self.fail(f'{error}')
+            if 'WAFNonexistentItemException' in error.response['Error']['Message'] and remove_all:
+                self.success()
+            else:
+                self.fail(f'{error}')
 
     def wait_on_status(self, change_token, current_retry, interval=30, max_interval=30, max_retries=15):
         try:
