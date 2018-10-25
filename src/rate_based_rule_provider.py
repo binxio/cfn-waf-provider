@@ -118,7 +118,7 @@ class RateBasedRuleProvider(ResourceProvider):
             else:
                 self.fail(status['Reason'])
         except ClientError as error:
-            if 'WAFNonexistentItemException' in error.response['Error']['Message']:
+            if 'WAFNonexistentItemException' in error.response['Error']['__type']:
                 self.success()
             else:
                 self.fail(f'{error}')
@@ -195,7 +195,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
             return status
         except ClientError as error:
-            if 'WAFNonexistentItemException' in error.response['Error']['Message'] and remove_all:
+            if 'WAFNonexistentItemException' in error.response['Error']['__type'] and remove_all:
                 self.success()
             else:
                 self.fail(f'{error}')
