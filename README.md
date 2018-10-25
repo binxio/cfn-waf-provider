@@ -1,16 +1,12 @@
-# Custom WAf Provider with Rate-=based Rule Support
-AWS Certificate Manager is a great service that allows the creation and renewal of certificates
-to be automated. It provides two ways of validating a certificate request: through email and through DNS.
+# WAF Custom Provider with Rate-based Rule Support
 
-When you are creating immutable infrastructure, the email validation method is a no-go as it requires
-human intervention. The DNS validation is of course the way to go! With 'Route53' we have full
-control over the DNS domain and can create the required records.
+The AWS Web Application Firewall (WAF) is a managed firewall service which supports a large variety of protection 
+options in the form of rules. These rules are linked a web access control ist (ACL) which in turn is attached to an 
+Amazon Cloudfront or Application Load Balancer.
 
-Although the CloudFormation [AWS::CertificateManager::Certificate](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html) resource allow you to specify that you want DNS validation, it does not 
-reveal the DNS records that you need to create. It writes them in the CloudFormation log
-file so that another human has to collect them and manually update the DNS record.
+ However one of the rule types that the WAF provides is not creatable using Cloudformation.
 
-With this custom provider you can fully automated the creation of certificates with CloudFormation!
+
 
 
 ## How do I request certificates fully automatically?
@@ -26,30 +22,29 @@ you can fully automate the provisioning of certificates, with the following reso
 Checkout the sample in [cloudformation/demo-stack.yaml](cloudformation/demo-stack.yaml).
 
 ## Installation
+
 To install this custom resource, type:
 
 ```sh
 aws cloudformation create-stack \
 	--capabilities CAPABILITY_IAM \
-	--stack-name cfn-certificate-provider \
-	--template-body file://cloudformation/cfn-resource-provider.json 
+	--stack-name cfn-waf-provider \
+	--template-body file://cloudformation/cfn-waf-provider.yaml 
 
-aws cloudformation wait stack-create-complete  --stack-name cfn-certificate-provider 
+aws cloudformation wait stack-create-complete  --stack-name cfn-waf-provider 
 ```
 
-This CloudFormation template will use our pre-packaged provider from `s3://binxio-public-${AWS_REGION}/lambdas/cfn-certificate-provider-0.2.0.zip`.
+This CloudFormation template will use our pre-packaged provider from `s3://binxio-public-${AWS_REGION}/lambdas/cfn-waf-provider-0.2.0.zip`.
 
 
 ## Demo
-To install the simple sample of the Custom Resource, type:
+
+To try out the Custom Resource type the following:
 
 ```sh
-read -p "domain name: " DOMAIN_NAME
-read -p "hosted zone id: " HOSTED_ZONE
-aws cloudformation create-stack --stack-name cfn-certificate-provider-demo \
-	--template-body file://cloudformation/demo-stack.json \
-	--parameters ParameterKey=DomainName,ParameterValue=$DOMAIN_NAME \
-		     ParameterKey=HostedZoneId,ParameterValue=$HOSTED_ZONE
-aws cloudformation wait stack-create-complete  --stack-name cfn-certificate-provider-demo
+aws cloudformation create-stack --stack-name cfn-waf-provider-demo \
+	--template-body file://cloudformation/demo-stack.yaml \
+aws cloudformation wait stack-create-complete  --stack-name cfn-waf-provider-demo
 ```
 
+This will deploy a stack containing some example rate-based rules. Some with predicates and some without.

@@ -103,7 +103,7 @@ class RateBasedRuleProvider(ResourceProvider):
                 })
             update.update({'Updates': predicates})
             self.execute_update(update, remove_all=True)
-            
+
         try:
             delete_request = {'RuleId': self.physical_resource_id}
             delete_request.update({'ChangeToken': client.get_change_token()['ChangeToken']})
