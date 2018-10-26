@@ -6,7 +6,7 @@ import logging
 import os
 
 log = logging.getLogger()
-log.setLevel(os.environ.get("LOG_LEVEL", "DEBUG"))
+log.setLevel(os.environ.get('LOG_LEVEL', 'DEBUG'))
 
 client = boto3.client('waf')
 
@@ -15,19 +15,19 @@ class RateBasedRuleProvider(ResourceProvider):
     def __init__(self):
         super(RateBasedRuleProvider, self).__init__()
         self.request_schema = {
-            "type": "object",
-            "required": ["Name", "MetricName", "RateKey", "RateLimit"],
-            "properties": {
-                "Name": {"type": "string"},
-                "MetricName": {"type": "string"},
-                "RateKey": {"type": "string"},
-                "RateLimit": {"type": "integer"},
-                "MatchPredicates": {
-                    "Negated": {"type": "boolean"},
-                    "Type": {"type": "string",
-                             "description": "IPMatch | ByteMatch | SqlInjectionMatch | GeoMatch | SizeConstraint | "
-                                            "XssMatch | RegexMatch"},
-                    "DataId": {"type": "string"}
+            'type': 'object',
+            'required': ['Name', 'MetricName', 'RateKey', 'RateLimit'],
+            'properties': {
+                'Name': {'type': 'string'},
+                'MetricName': {'type': 'string'},
+                'RateKey': {'type': 'string'},
+                'RateLimit': {'type': 'integer'},
+                'MatchPredicates': {
+                    'Negated': {'type': 'boolean'},
+                    'Type': {'type': 'string',
+                             'description': 'IPMatch | ByteMatch | SqlInjectionMatch | GeoMatch | SizeConstraint | '
+                                            'XssMatch | RegexMatch'},
+                    'DataId': {'type': 'string'}
                 }
             }
         }
@@ -45,7 +45,7 @@ class RateBasedRuleProvider(ResourceProvider):
             self.physical_resource_id = response['Rule']['RuleId']
 
             create_status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish creating
-            print(f"properties_before_create: {self.properties}")
+            print(f'properties_before_create: {self.properties}')
 
             if create_status['Success']:
                 if 'MatchPredicates' in self.properties:   # check if the rule needs to be updated with predicate(s)
@@ -81,16 +81,17 @@ class RateBasedRuleProvider(ResourceProvider):
 
     def update(self):
         self.convert_properties(self.old_properties)    # also convert the old properties
-        old_predicates = {} if 'MatchPredicates' not in self.old_properties else self.old_properties['MatchPredicates']
-        print(f"old_predicates: {old_predicates}")
+        old_predicates = self.old_properties['MatchPredicates'] if 'MatchPredicates' in self.old_properties else {}
+        print(f'old_predicates: {old_predicates}')
+        print(f'new_predicates: {self.properties}')
 
         if 'MatchPredicates' in self.properties:
             new_predicates = self.properties['MatchPredicates']     # get new predicates from request
             update_request = self.create_update_request(old_predicates, new_predicates)
-        else:
-            self.fail(f"No match predicates found in update request")
 
-        self.execute_update(update_request)
+            self.execute_update(update_request)
+        else:
+            self.fail(f'No match predicates found in update request')
 
     def delete(self):
         # Check for predicates, if so delete them first
@@ -141,15 +142,13 @@ class RateBasedRuleProvider(ResourceProvider):
         deletes = []
         inserts = []
 
-        print(f"new_predicates: {new_predicates}")
-
         # check for each predicate if it already exists, if so delete it and insert a new one
         for new_predicate in new_predicates:
             missing = missing_fields(new_predicate)
-            print(f"missing ==>> {missing}")
+            print(f'missing ==>> {missing}')
             if not missing:
                 old_predicate = find_old_predicate(new_predicate, old_predicates)
-                print(f"old_predicate ==>> {old_predicate}")
+                print(f'old_predicate ==>> {old_predicate}')
                 old_predicates = [p for p in old_predicates if p != old_predicate]  # remove from predicate list
                 if old_predicate is not None and new_predicate != old_predicate:
                     deletes.append({
@@ -166,7 +165,7 @@ class RateBasedRuleProvider(ResourceProvider):
                         'Predicate': new_predicate
                     })
             else:
-                self.fail(f"Predicate {new_predicate} is missing required fields: {missing}")
+                self.fail(f'Predicate {new_predicate} is missing required fields: {missing}')
                 return
 
         # delete any predicates that are no longer present in the update request
@@ -176,8 +175,8 @@ class RateBasedRuleProvider(ResourceProvider):
                 'Predicate': old_predicate
             })
 
-        print(f"delete_set: {deletes}")
-        print(f"insert_set: {inserts}")
+        print(f'delete_set: {deletes}')
+        print(f'insert_set: {inserts}')
 
         update_request = {'RuleId': self.physical_resource_id}
         update_request.update({'RateLimit': self.properties['RateLimit']})
@@ -191,7 +190,7 @@ class RateBasedRuleProvider(ResourceProvider):
     def execute_update(self, update_request, remove_all=False):
         try:
             update_request.update({'ChangeToken': client.get_change_token()['ChangeToken']})
-            print(f"updates: {update_request}")
+            print(f'updates: {update_request}')
             response = client.update_rate_based_rule(**update_request)
 
             status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish updating
@@ -209,21 +208,21 @@ class RateBasedRuleProvider(ResourceProvider):
 
             if response['ChangeTokenStatus'] != 'INSYNC':
                 if current_retry >= max_retries:
-                    print(f"Max reties ({max_retries}) reached, something must have gone wrong. "
+                    print(f'Max reties ({max_retries}) reached, something must have gone wrong. '
                           f"Current status: {response['ChangeTokenStatus']}.")
                     return {
-                        "Success": False,
-                        "Reason": f"Max retries ({max_retries}) reached, something must have gone wrong."
+                        'Success': False,
+                        'Reason': f'Max retries ({max_retries}) reached, something must have gone wrong.'
                     }
                 else:
                     print(f"Not done, current status is: {response['ChangeTokenStatus']}. "
-                          f"Waiting {interval} seconds before retrying.")
+                          f'Waiting {interval} seconds before retrying.')
                     time.sleep(interval)
                     return self.wait_on_status(change_token,
                                                current_retry=current_retry + 1,
                                                interval=min(interval + interval, max_interval))
             else:
-                return {"Success": True, "Reason": ""}
+                return {'Success': True, 'Reason': ''}
         except ClientError as error:
             self.physical_resource_id = 'failed-to-create'
             self.fail(f'{error}')
@@ -232,12 +231,40 @@ class RateBasedRuleProvider(ResourceProvider):
         self.convert_properties(self.properties)
 
     def convert_properties(self, properties):
-        for name in properties:
-            if isinstance(name, list):
-                for prop in properties[name]:
-                    self.heuristic_convert_property_types(prop)
+        def convert(string):
+            v = str(string)
+            if v.lower() == 'true':
+                return True
+            elif v.lower() == 'false':
+                return False
+            elif check_int(v):
+                return int(v)
             else:
-                self.heuristic_convert_property_types(properties)
+                return v
+
+        def check_int(i):
+            try:
+                int(i)
+                return True
+            except ValueError:
+                return False
+
+        if isinstance(properties, list):
+            print(f'properties: {properties} is a list')
+            for p in properties:
+                self.convert_properties(p)
+        else:
+            for prop in properties:
+                print(f'checking prop: {prop}')
+                if isinstance(properties[prop], str):
+                    print(f'properties[prop]: {properties[prop]} is a string')
+                    properties[prop] = convert(properties[prop])
+                elif iter(prop):
+                    print(f'prop: {prop} is an iterable')
+                    self.convert_properties(properties[prop])
+                else:
+                    print('Unknown type, passing...')
+                    pass
 
 
 provider = RateBasedRuleProvider()

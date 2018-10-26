@@ -1,5 +1,6 @@
 from mock import patch
 from src.rate_based_rule_provider import handler
+from src.rate_based_rule_provider import RateBasedRuleProvider
 
 import uuid
 
@@ -40,7 +41,7 @@ def mock_boto_calls(self, operation_name, kwargs):
     if operation_name == 'GetChangeTokenStatus':
         global count
 
-        if count <= 2:
+        if count < 1:
             count += 1
 
             return {
@@ -56,7 +57,7 @@ def mock_boto_calls(self, operation_name, kwargs):
 
 @patch('botocore.client.BaseClient._make_api_call', mock_boto_calls)
 def test_create_based_rate_rule():
-    request = Request('Create', 'test-create-rate-based-rule', 2345)
+    request = Request('Create', 'test-create-rate-based-rule', '2345')
     print(f"request: {request}")
 
     response = handler(request, ())
@@ -71,17 +72,17 @@ def test_create_rate_based_rule_predicate():
         'Name': 'test-create-rate-based-rule-predicate',
         'MetricName': 'test-create-rate-based-rule-predicate-metric',
         'RateKey': 'IP',
-        'RateLimit': 2345
+        'RateLimit': '2345'
     }
     updates = [
         {
-            'Negated': False,
+            'Negated': 'False',
             'Type': 'IPMatch',
             'DataId': 'data-id-1'
         }
     ]
 
-    request = Request('Create', 'test-create-rate-based-rule-predicate', 2345, 'IP', updates, old_properties)
+    request = Request('Create', 'test-create-rate-based-rule-predicate', '2345', 'IP', updates, old_properties)
     print(f"request: {request}")
 
     response = handler(request, ())
@@ -93,7 +94,7 @@ def test_create_rate_based_rule_predicate():
 @patch('botocore.client.BaseClient._make_api_call', mock_boto_calls)
 def test_update_rule_with_new_predicate():
     # create a rule
-    request = Request('Create', 'create-rule-for-update-test', 2345)
+    request = Request('Create', 'create-rule-for-update-test', '2345')
     response = handler(request, ())
     print(f"create response: {response}")
     assert response['Status'] == 'SUCCESS'
@@ -103,17 +104,17 @@ def test_update_rule_with_new_predicate():
         'Name': 'create-rule-for-update-test',
         'MetricName': 'create-rule-for-update-test-metric',
         'RateKey': 'IP',
-        'RateLimit': 2345
+        'RateLimit': '2345'
     }
     updates = [
         {
-            'Negated': False,
+            'Negated': 'False',
             'Type': 'IPMatch',
             'DataId': 'data-id-1'
         }
     ]
 
-    request = Request('Update', 'test-update-with-new-predicate', 2345, 'IP', updates, old_properties)
+    request = Request('Update', 'test-update-with-new-predicate', '2345', 'IP', updates, old_properties)
     print(f"request: {request}")
 
     response = handler(request, ())
@@ -125,7 +126,7 @@ def test_update_rule_with_new_predicate():
 @patch('botocore.client.BaseClient._make_api_call', mock_boto_calls)
 def test_update_rule_with_existing_predicate():
     # create a rule
-    request = Request('Create', 'create-rule-for-update-test', 2345)
+    request = Request('Create', 'create-rule-for-update-test', '2345')
     response = handler(request, ())
     print(f"create response: {response}")
     assert response['Status'] == 'SUCCESS'
@@ -135,10 +136,10 @@ def test_update_rule_with_existing_predicate():
         'Name': 'create-rule-for-update-test',
         'MetricName': 'create-rule-for-update-test-metric',
         'RateKey': 'IP',
-        'RateLimit': 2345,
+        'RateLimit': '2345',
         'MatchPredicates': [
             {
-                'Negated': False,
+                'Negated': 'False',
                 'Type': 'IPMatch',
                 'DataId': 'data-id-1'
             }
@@ -146,13 +147,13 @@ def test_update_rule_with_existing_predicate():
     }
     updates = [
         {
-            'Negated': True,
+            'Negated': 'True',
             'Type': 'ByteMatch',
             'DataId': 'data-id-1'
         }
     ]
 
-    request = Request('Update', 'test-update-with-existing-predicate', 2345, 'IP', updates, old_properties)
+    request = Request('Update', 'test-update-with-existing-predicate', '2345', 'IP', updates, old_properties)
     print(f"request: {request}")
     response = handler(request, ())
     print(f"update response: {response}")
@@ -163,7 +164,7 @@ def test_update_rule_with_existing_predicate():
 @patch('botocore.client.BaseClient._make_api_call', mock_boto_calls)
 def test_update_rule_mixed_predicate():
     # create a rule
-    request = Request('Create', 'create-rule-for-update-test', 2345)
+    request = Request('Create', 'create-rule-for-update-test', '2345')
     response = handler(request, ())
     print(f"create response: {response}")
     assert response['Status'] == 'SUCCESS'
@@ -173,15 +174,15 @@ def test_update_rule_mixed_predicate():
         'Name': 'create-rule-for-update-test',
         'MetricName': 'create-rule-for-update-test-metric',
         'RateKey': 'IP',
-        'RateLimit': 2345,
+        'RateLimit': '2345',
         'MatchPredicates': [
             {
-                'Negated': False,
+                'Negated': 'False',
                 'Type': 'IPMatch',
                 'DataId': 'data-id-1'
             },
             {
-                'Negated': False,
+                'Negated': 'False',
                 'Type': 'IPMatch',
                 'DataId': 'data-id-2'
             }
@@ -189,18 +190,18 @@ def test_update_rule_mixed_predicate():
     }
     updates = [
         {
-            'Negated': True,
+            'Negated': 'True',
             'Type': 'ByteMatch',
             'DataId': 'data-id-1'
         },
         {
-            'Negated': False,
+            'Negated': 'False',
             'Type': 'RegexMatch',
             'DataId': 'data-id-3'
         }
     ]
 
-    request = Request('Update', 'test-update-mixed', 2345, 'IP', updates, old_properties)
+    request = Request('Update', 'test-update-mixed', '2345', 'IP', updates, old_properties)
     print(f"request: {request}")
     response = handler(request, ())
     print(f"update response: {response}")
@@ -211,7 +212,7 @@ def test_update_rule_mixed_predicate():
 @patch('botocore.client.BaseClient._make_api_call', mock_boto_calls)
 def test_update_rule_remove_predicate():
     # create a rule
-    request = Request('Create', 'create-rule-for-update-test', 2345)
+    request = Request('Create', 'create-rule-for-update-test', '2345')
     response = handler(request, ())
     print(f"create response: {response}")
     assert response['Status'] == 'SUCCESS'
@@ -221,10 +222,10 @@ def test_update_rule_remove_predicate():
         'Name': 'create-rule-for-update-test',
         'MetricName': 'create-rule-for-update-test-metric',
         'RateKey': 'IP',
-        'RateLimit': 2345,
+        'RateLimit': '2345',
         'MatchPredicates': [
             {
-                'Negated': False,
+                'Negated': 'False',
                 'Type': 'IPMatch',
                 'DataId': 'data-id-1'
             }
@@ -232,7 +233,7 @@ def test_update_rule_remove_predicate():
     }
     updates = []
 
-    request = Request('Update', 'test-update-remove', 2345, 'IP', updates, old_properties)
+    request = Request('Update', 'test-update-remove', '2345', 'IP', updates, old_properties)
     print(f"request: {request}")
     response = handler(request, ())
     print(f"update response: {response}")
@@ -243,7 +244,7 @@ def test_update_rule_remove_predicate():
 @patch('botocore.client.BaseClient._make_api_call', mock_boto_calls)
 def test_update_rule_missing_arguments_predicate():
     # create a rule
-    request = Request('Create', 'create-rule-for-update-test', 2345)
+    request = Request('Create', 'create-rule-for-update-test', '2345')
     response = handler(request, ())
     print(f"create response: {response}")
     assert response['Status'] == 'SUCCESS'
@@ -253,7 +254,7 @@ def test_update_rule_missing_arguments_predicate():
         'Name': 'create-rule-for-update-test',
         'MetricName': 'create-rule-for-update-test-metric',
         'RateKey': 'IP',
-        'RateLimit': 2345
+        'RateLimit': '2345'
     }
     updates = [
         {
@@ -262,7 +263,7 @@ def test_update_rule_missing_arguments_predicate():
         }
     ]
 
-    request = Request('Update', 'test-update-missing-arguments-predicate', 2345, 'IP', updates, old_properties)
+    request = Request('Update', 'test-update-missing-arguments-predicate', '2345', 'IP', updates, old_properties)
     print(f"request: {request}")
     response = handler(request, ())
     print(f"update response: {response}")
@@ -278,6 +279,43 @@ def test_delete_rate_based_rule_predicate():
         'Name': 'create-rule-for-update-test',
         'MetricName': 'create-rule-for-update-test-metric',
         'RateKey': 'IP',
+        'RateLimit': '2345',
+        'MatchPredicates': [
+            {
+                'Negated': 'False',
+                'Type': 'IPMatch',
+                'DataId': 'data-id-1'
+            }
+        ]
+    }
+
+    request = Request('Delete', 'test-delete-rate-based-rule', '2345', 'IP', old_properties=old_properties)
+    print(f"request: {request}")
+
+    response = handler(request, ())
+    print(f"delete response: {response}")
+
+    assert response['Status'] == 'SUCCESS'
+
+
+def test_convert_properties1():
+    test = {
+        'Name': 'create-rule-for-update-test',
+        'MetricName': 'create-rule-for-update-test-metric',
+        'RateKey': 'IP',
+        'RateLimit': '2345',
+        'MatchPredicates': [
+            {
+                'Negated': 'False',
+                'Type': 'IPMatch',
+                'DataId': 'data-id-1'
+            }
+        ]
+    }
+    result = {
+        'Name': 'create-rule-for-update-test',
+        'MetricName': 'create-rule-for-update-test-metric',
+        'RateKey': 'IP',
         'RateLimit': 2345,
         'MatchPredicates': [
             {
@@ -288,13 +326,33 @@ def test_delete_rate_based_rule_predicate():
         ]
     }
 
-    request = Request('Delete', 'test-delete-rate-based-rule', 2345, 'IP', old_properties=old_properties)
-    print(f"request: {request}")
+    provider = RateBasedRuleProvider()
+    provider.convert_properties(test)
 
-    response = handler(request, ())
-    print(f"delete response: {response}")
+    assert test == result
 
-    assert response['Status'] == 'SUCCESS'
+
+def test_convert_properties2():
+    test = [
+        {
+            'Negated': 'False',
+            'Type': 'IPMatch',
+            'DataId': 'data-id-1'
+        }
+    ]
+
+    result = [
+        {
+            'Negated': False,
+            'Type': 'IPMatch',
+            'DataId': 'data-id-1'
+        }
+    ]
+
+    provider = RateBasedRuleProvider()
+    provider.convert_properties(test)
+
+    assert test == result
 
 
 class Request(dict):
@@ -320,7 +378,7 @@ class Request(dict):
             self['OldResourceProperties'] = old_properties
 
         if updates is not None:
-            self['ResourceProperties']['Updates'] = updates
+            self['ResourceProperties']['MatchPredicates'] = updates
 
         if physical_resource_id is not None:
             self['PhysicalResourceId'] = physical_resource_id
