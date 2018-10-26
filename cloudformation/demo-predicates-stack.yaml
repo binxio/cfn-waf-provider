@@ -1,0 +1,74 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Demo stack for the rate-based rule provider
+
+Resources:
+  IpSetTestPredicate:
+    Type: AWS::WAF::IPSet
+    Properties:
+      Name: ipset test predicate
+      IPSetDescriptors:
+      -
+        Type: IPV4
+        Value: 192.0.2.0/24
+  SqlInjectionMatchSetTestPredicate:
+    Type: AWS::WAF::SqlInjectionMatchSet
+    Properties:
+      Name: sql injection matchset test predicate
+      SqlInjectionMatchTuples:
+      -
+        FieldToMatch:
+          Type: URI
+        TextTransformation: NONE
+  ByteMatchSetTestPredicate:
+    Type: AWS::WAF::ByteMatchSet
+    Properties:
+      Name: byte matchset test predicate
+      ByteMatchTuples:
+      -
+        FieldToMatch:
+          Type: QUERY_STRING
+        PositionalConstraint: CONTAINS
+        TextTransformation: LOWERCASE
+  SizeConstraintSetTrestPredicate:
+    Type: AWS::WAF::SizeConstraintSet
+    Properties:
+      Name: size contraint set test predicate
+      SizeConstraints:
+      -
+        ComparisonOperator: LE
+        FieldToMatch:
+          Type: BODY
+        Size: 21474836480
+        TextTransformation: COMPRESS_WHITE_SPACE
+  XssMatchSetTrestPredicate:
+    Type: AWS::WAF::XssMatchSet
+    Properties:
+      Name: size contraint set test predicate
+      XssMatchTuples:
+      -
+        FieldToMatch:
+          Type: BODY
+        TextTransformation: CMD_LINE
+
+Outputs:
+  IpSetTestPredicate:
+    Value: !Ref IpSetTestPredicate
+    Export:
+      Name: IpSetTestPredicate
+  SqlInjectionMatchSetTestPredicate:
+    Value: !Ref SqlInjectionMatchSetTestPredicate
+    Export:
+      Name: SqlInjectionMatchSetTestPredicate
+  ByteMatchSetTestPredicate:
+    Value: !Ref ByteMatchSetTestPredicate
+    Export:
+      Name: ByteMatchSetTestPredicate
+  SizeConstraintSetTrestPredicate:
+    Value: !Ref SizeConstraintSetTrestPredicate
+    Export:
+      Name: SizeConstraintSetTrestPredicate
+  XssMatchSetTrestPredicate:
+    Value: !Ref XssMatchSetTrestPredicate
+    Export:
+      Name: XssMatchSetTrestPredicate
