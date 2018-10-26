@@ -45,6 +45,7 @@ class RateBasedRuleProvider(ResourceProvider):
             self.physical_resource_id = response['Rule']['RuleId']
 
             create_status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish creating
+
             print(f'properties_before_create: {self.properties}')
 
             if create_status['Success']:
@@ -62,9 +63,9 @@ class RateBasedRuleProvider(ResourceProvider):
                         })
                     update.update({'Updates': predicates})
 
-                    update_status = self.execute_update(update)
+                    self.execute_update(update)
 
-                    if 'Success' in update_status and update_status['Success']:
+                    if self.response['Status'] == 'Success':
                         print('Create and update are done.')
                         self.success('Create and update are done.')
                     else:
@@ -85,13 +86,10 @@ class RateBasedRuleProvider(ResourceProvider):
         print(f'old_predicates: {old_predicates}')
         print(f'new_predicates: {self.properties}')
 
-        if 'MatchPredicates' in self.properties:
-            new_predicates = self.properties['MatchPredicates']     # get new predicates from request
-            update_request = self.create_update_request(old_predicates, new_predicates)
+        new_predicates = self.properties['MatchPredicates'] if 'MatchPredicates' in self.properties else {} # get new predicates from request
 
-            self.execute_update(update_request)
-        else:
-            self.fail(f'No match predicates found in update request')
+        update_request = self.create_update_request(old_predicates, new_predicates)
+        self.execute_update(update_request)
 
     def delete(self):
         # Check for predicates, if so delete them first
@@ -114,13 +112,11 @@ class RateBasedRuleProvider(ResourceProvider):
             delete_request.update({'ChangeToken': client.get_change_token()['ChangeToken']})
             response = client.delete_rate_based_rule(**delete_request)
 
-            status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish deleting
+            self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish deleting
 
-            if status['Success']:
+            if self.response['Status'] == 'Success':
                 print('Delete is done.')
                 self.success('Delete is done.')
-            else:
-                self.fail(status['Reason'])
         except ClientError as error:
             if 'WAFNonexistentItemException' in error.response['Error']['__type']:
                 self.success()
@@ -210,19 +206,16 @@ class RateBasedRuleProvider(ResourceProvider):
                 if current_retry >= max_retries:
                     print(f'Max reties ({max_retries}) reached, something must have gone wrong. '
                           f"Current status: {response['ChangeTokenStatus']}.")
-                    return {
-                        'Success': False,
-                        'Reason': f'Max retries ({max_retries}) reached, something must have gone wrong.'
-                    }
+                    self.fail(f'Max retries ({max_retries}) reached, something must have gone wrong.')
                 else:
                     print(f"Not done, current status is: {response['ChangeTokenStatus']}. "
                           f'Waiting {interval} seconds before retrying.')
                     time.sleep(interval)
-                    return self.wait_on_status(change_token,
+                    self.wait_on_status(change_token,
                                                current_retry=current_retry + 1,
                                                interval=min(interval + interval, max_interval))
             else:
-                return {'Success': True, 'Reason': ''}
+                self.success()
         except ClientError as error:
             self.physical_resource_id = 'failed-to-create'
             self.fail(f'{error}')

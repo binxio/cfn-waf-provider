@@ -40,8 +40,8 @@ Resources:
         ComparisonOperator: LE
         FieldToMatch:
           Type: BODY
-        Size: 200
-        TextTransformation: COMPRESS_WHITE_SPACE
+        Size: 2000
+        TextTransformation: NONE # other options give internal failure error in cloudformation
   XssMatchSetTrestPredicate:
     Type: AWS::WAF::XssMatchSet
     Properties:
