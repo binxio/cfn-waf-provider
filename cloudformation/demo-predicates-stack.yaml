@@ -28,6 +28,7 @@ Resources:
       -
         FieldToMatch:
           Type: QUERY_STRING
+        TargetString: URI
         PositionalConstraint: CONTAINS
         TextTransformation: LOWERCASE
   SizeConstraintSetTrestPredicate:
@@ -39,7 +40,7 @@ Resources:
         ComparisonOperator: LE
         FieldToMatch:
           Type: BODY
-        Size: 21474836480
+        Size: 200
         TextTransformation: COMPRESS_WHITE_SPACE
   XssMatchSetTrestPredicate:
     Type: AWS::WAF::XssMatchSet
