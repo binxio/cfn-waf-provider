@@ -22,11 +22,13 @@ custom resource provider does exactly that!
 ## How do I use it?
 
 Creating a rate-based rule without any predicates does not have any prerequisites, however if you want to attach any 
-predicates to the rule you have to first create those for example an
-[AWS::WAF::IPSet](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-waf-ipset.html). 
+predicates to the rule you have to create them first. 
 
-Once you have deployed your desired predicates you can add the [MatchPredicates](#syntax-yaml) section to rate-based rule's cloudformation 
-template. MatchPredicates expects a list of predicate definitions such as the example below:
+1. [Custom::RateBasedRule](syntax-yaml)
+2. [AWS WAF Predicate(s)](https://docs.aws.amazon.com/waf/latest/APIReference/API_Predicate.html) (Optional)
+
+If you have deployed your desired predicates you can add the [MatchPredicates](#syntax-yaml) section to rate-based 
+rule's cloudformation template. MatchPredicates expects a list of predicate definitions such as the example below:
 
 ```yaml
 MatchPredicates:
@@ -40,11 +42,9 @@ MatchPredicates:
     DataId: !ImportValue IPSetPredicate
 ```
 
-1. [Custom::RateBasedRule](syntax-yaml) to request a certificate without waiting for it to be issued
-2. [AWS::WAF::IPSet](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-waf-ipset.html) which will obtain the DNS record for a domain name on the certificate.
-3. [AWS::WAF::WebACL](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-waf-webacl.html) which will activately wait until the certificate is issued.
+Note: The predicates must be created/exist before the custom resource is created.
 
-Checkout the sample rules in [cloudformation/demo-stack.yaml](cloudformation/demo-stack.yaml).
+Checkout the sample rules in the [demo-stack.yaml](cloudformation/demo-stack.yaml) for more information.
 
 ## Syntax YAML
 
