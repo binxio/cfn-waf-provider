@@ -1,7 +1,7 @@
 # WAF Custom Provider with Rate-based Rule Support
 
-The AWS Web Application Firewall (WAF) is a managed firewall service which supports a large variety of protection 
-options in the form of rules. These rules are linked a web access control ist (ACL) which in turn is attached to an 
+The AWS Web Application Firewall (WAF) is a managed firewall service that supports a large variety of protection 
+options in the form of rules. These rules are linked a web access control list (ACL) which in turn is attached to an 
 Amazon Cloudfront or Application Load Balancer.
 
 
@@ -21,14 +21,47 @@ custom resource provider does exactly that!
 
 ## How do I use it?
 
-As a prerequisite, you need to have the hosted zones for the domain names on your certificate in Route53. If you have that,
-you can fully automate the provisioning of certificates, with the following resources:
+Creating a rate-based rule without any predicates does not have any prerequisites, however if you want to attach any 
+predicates to the rule you have to first create those for example an
+[AWS::WAF::IPSet](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-waf-ipset.html). 
 
-1. [Custom::RateBasedRule](docs/Certificate.md) to request a certificate without waiting for it to be issued
-3. [AWS::WAF::IPSet](docs/CertificateDNSRecord) which will obtain the DNS record for a domain name on the certificate.
-3. [AWS::WAF::WebACL](docs/IssuedCertificate.md) which will activately wait until the certificate is issued.
+Once you have deployed your desired predicates you can add the [MatchPredicates](#syntax-yaml) section to rate-based rule's cloudformation 
+template. MatchPredicates expects a list of predicate definitions such as the example below:
+
+```yaml
+MatchPredicates:
+-
+    Negated: False
+    Type: XssMatch
+    DataId: !Ref XssMatchSetPredicate
+-
+    Negated: True
+    Type: IPMatch
+    DataId: !ImportValue IPSetPredicate
+```
+
+1. [Custom::RateBasedRule](syntax-yaml) to request a certificate without waiting for it to be issued
+2. [AWS::WAF::IPSet](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-waf-ipset.html) which will obtain the DNS record for a domain name on the certificate.
+3. [AWS::WAF::WebACL](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-waf-webacl.html) which will activately wait until the certificate is issued.
 
 Checkout the sample rules in [cloudformation/demo-stack.yaml](cloudformation/demo-stack.yaml).
+
+## <a id="syntax-yaml"></a> Syntax YAML
+
+```yaml
+Type: Custom::RateBasedRule
+Properties:
+  Name: string
+  MetricName: string
+  RateKey: string (Only valid value is IP)
+  RateLimit: integer (>=2000)
+  MatchPredicates:
+  -
+    Negated: True |False
+    Type: IPMatch | ByteMatch | SqlInjectionMatch | GeoMatch | SizeConstraint | XssMatch | RegexMatch
+    DataId: Predicate's physical ID
+  ServiceToken: Arn of the custom resource provider lambda function
+```
 
 ## Installation
 
@@ -48,7 +81,7 @@ This CloudFormation template will use our pre-packaged provider from `s3://binxi
 
 ## Demo
 
-To try out the Custom Resource type the following:
+To try out the Custom Resource type the following to deploy the demo:
 
 ```sh
 aws cloudformation create-stack --stack-name cfn-waf-provider-predicates-demo \
@@ -62,4 +95,5 @@ aws cloudformation create-stack --stack-name cfn-waf-provider-demo \
 aws cloudformation wait stack-create-complete  --stack-name cfn-waf-provider-demo
 ```
 
-This will deploy a stack containing some example rate-based rules. Some with predicates and some without.
+This will deploy a cfn-waf-provider-predicates-demo stack containing several example predicates and a cfn-waf-provider-demo 
+stack containing some examples of rate-based rules. Some with predicates and some without.
