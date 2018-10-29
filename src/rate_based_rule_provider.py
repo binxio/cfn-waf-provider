@@ -44,11 +44,11 @@ class RateBasedRuleProvider(ResourceProvider):
 
             self.physical_resource_id = response['Rule']['RuleId']
 
-            create_status = self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish creating
+            self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish creating
 
             print(f'properties_before_create: {self.properties}')
 
-            if create_status['Success']:
+            if self.response['Status'] == 'Success':
                 if 'MatchPredicates' in self.properties:   # check if the rule needs to be updated with predicate(s)
                     print('Predicate(s) detected in create request. Also updating the rule.')
 
@@ -74,8 +74,6 @@ class RateBasedRuleProvider(ResourceProvider):
                 else:
                     print('Create is done.')
                     self.success('Create is done.')
-            else:
-                self.fail(create_status['Reason'])
         except ClientError as error:
             self.physical_resource_id = 'failed-to-create'
             self.fail(f'{error}')
