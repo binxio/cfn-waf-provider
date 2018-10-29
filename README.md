@@ -51,6 +51,12 @@ This CloudFormation template will use our pre-packaged provider from `s3://binxi
 To try out the Custom Resource type the following:
 
 ```sh
+aws cloudformation create-stack --stack-name cfn-waf-provider-predicates-demo \
+	--template-body file://cloudformation/demo-predicates-stack.yaml \
+aws cloudformation wait stack-create-complete  --stack-name cfn-waf-provider-predicates-demo
+```
+
+```sh
 aws cloudformation create-stack --stack-name cfn-waf-provider-demo \
 	--template-body file://cloudformation/demo-stack.yaml \
 aws cloudformation wait stack-create-complete  --stack-name cfn-waf-provider-demo

@@ -48,7 +48,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
             print(f'properties_before_create: {self.properties}')
 
-            if self.response['Status'] == 'Success':
+            if self.response['Status'] == 'SUCCESS':
                 if 'MatchPredicates' in self.properties:   # check if the rule needs to be updated with predicate(s)
                     print('Predicate(s) detected in create request. Also updating the rule.')
 
@@ -65,7 +65,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
                     self.execute_update(update)
 
-                    if self.response['Status'] == 'Success':
+                    if self.response['Status'] == 'SUCCESS':
                         print('Create and update are done.')
                         self.success('Create and update are done.')
                     else:
@@ -112,7 +112,7 @@ class RateBasedRuleProvider(ResourceProvider):
 
             self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish deleting
 
-            if self.response['Status'] == 'Success':
+            if self.response['Status'] == 'SUCCESS':
                 print('Delete is done.')
                 self.success('Delete is done.')
         except ClientError as error:
