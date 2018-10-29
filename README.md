@@ -46,7 +46,7 @@ MatchPredicates:
 
 Checkout the sample rules in [cloudformation/demo-stack.yaml](cloudformation/demo-stack.yaml).
 
-## <a id="syntax-yaml"></a> Syntax YAML
+## Syntax YAML
 
 ```yaml
 Type: Custom::RateBasedRule
