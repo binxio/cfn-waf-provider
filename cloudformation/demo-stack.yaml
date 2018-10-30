@@ -3,10 +3,19 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Demo stack for the rate-based rule provider
 
 Resources:
-  RateBasedRuleWithPredicate:
+  RateBasedRule:
     Type: Custom::RateBasedRule
     Properties:
-      Name: RateBasedRulePredicate1
+      Name: ratebasedrule
+      MetricName: ratebasedrulemetric
+      RateKey: IP
+      RateLimit: 4500
+      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
+  RateBasedRuleWithPredicate1:
+    DependsOn: RateBasedRule
+    Type: Custom::RateBasedRule
+    Properties:
+      Name: ratebasedrulepredicate1
       MetricName: ratebasedrulepredicate1metric
       RateKey: IP
       RateLimit: 3245
@@ -17,10 +26,10 @@ Resources:
         DataId: !ImportValue XssMatchSetTrestPredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
   RateBasedRuleWithPredicate2:
-    DependsOn: RateBasedRuleWithPredicate
+    DependsOn: RateBasedRuleWithPredicate1
     Type: Custom::RateBasedRule
     Properties:
-      Name: RateBasedRulePredicate2
+      Name: ratebasedrulepredicate2
       MetricName: ratebasedrulepredicate2metric
       RateKey: IP
       RateLimit: 2800
@@ -29,4 +38,8 @@ Resources:
         Negated: False
         Type: SqlInjectionMatch
         DataId: !ImportValue SqlInjectionMatchSetTestPredicate
+      -
+        Negated: True
+        Type: ByteMatch
+        DataId: !ImportValue ByteMatchSetTestPredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
