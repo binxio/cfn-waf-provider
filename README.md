@@ -78,23 +78,29 @@ Properties:
 
 ## Installation
 
-To install this custom resource, type:
+To install this custom resource follow these steps:
+
+- Package the Lambda using docker and upload it to S3 using ```make deploy``` (See the [makefile](Makefile) for more info)
+
+- Deploy the cfn-waf-provider stack using ```make deploy-provider``` or 
+type (remember to fill in your bucket name and key): 
 
 ```sh
 aws cloudformation create-stack \
 	--capabilities CAPABILITY_IAM \
 	--stack-name cfn-waf-provider \
-	--template-body file://cloudformation/cfn-waf-provider.yaml 
+	--template-body file://cloudformation/cfn-waf-provider.yaml
+	--parameters \
+                ParameterKey=S3BucketPrefix,ParameterValue=INSERT_BUCKET_NAME_HERE \
+                ParameterKey=CFNCustomProviderZipFileName,ParameterValue=INSERT_BUCKET_KEY_HERE 
 
-aws cloudformation wait stack-create-complete  --stack-name cfn-waf-provider 
+aws cloudformation wait stack-create-complete  --stack-name cfn-waf-provider
 ```
-
-This CloudFormation template will use our pre-packaged provider from `s3://binxio-public-${AWS_REGION}/lambdas/cfn-waf-provider-0.2.0.zip`.
 
 
 ## Demo
 
-To try out the Custom Resource type the following to deploy the demo:
+To try out the custom resource type the following to deploy the demo:
 
 ```sh
 aws cloudformation create-stack --stack-name cfn-waf-provider-predicates-demo \
@@ -112,18 +118,19 @@ This will deploy a cfn-waf-provider-predicates-demo stack containing several exa
 stack containing some examples of rate-based rules. Some with predicates and some without.
 
 
-## WAF API Behavior
+### WAF API Behavior
 
 In order to create, update, or delete a rule we have to request a ChangeToken from WAF. We send this token with such a 
 request, which allows the WAF to prevent conflicting requests from being submitted. However, once a change token is 
 requested using the getChangeToken action it continues to return the same token until it is actually used in a create, 
 update or delete request. For the custom provider this means that if at least two resources are created simultaneously 
 they can potentially receive the same change token. The first to use the token succeeds while the others will receive a 
-stale token error. However, the current behavior means that we have to either force sequential create, update and delete 
-requests for rate-based rules using the ```DependsOn:``` CloudFormation statement or configure the lambda with max 
-concurrency one. This does come with the downside that rule creation plus an update to add predicates can take up to 10 
-minutes per rule. 
+stale token error. 
+
+The current behavior means that we have to either force sequential create, update and delete requests for rate-based 
+rules using the ```DependsOn:``` CloudFormation statement or configure the lambda to have max concurrency one. 
+This does come with the downside that rule creation plus an update to add predicates can take up to 10 minutes per rule. 
 
 Another option is to request a new token whenever a conflict occurs, however, I do not like the idea of hoping that 
 these conflicts don’t cascade to the point of “too many request timeouts” on the API. Lastly, one could also attempt to 
-force synchronization during the token request and it being used, however, that seems like a poor design choice to me.
+force synchronization during the token request and it being used, however, that personally seems like a poor design choice.

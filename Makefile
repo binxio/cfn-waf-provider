@@ -1,8 +1,8 @@
 include Makefile.mk
 
 NAME=cfn-waf-provider
-S3_BUCKET_PREFIX=binxio-public
-AWS_REGION=eu-central-1
+S3_BUCKET_PREFIX=binxio-waf-custom-provider
+AWS_REGION=eu-west-1
 ALL_REGIONS=$(shell printf "import boto3\nprint('\\\n'.join(map(lambda r: r['RegionName'], boto3.client('ec2').describe_regions()['Regions'])))\n" | python | grep -v '^$(AWS_REGION)$$')
 
 help:
@@ -97,7 +97,7 @@ deploy-provider: target/$(NAME)-$(VERSION).zip
                 --stack-name $(NAME) \
                 --template-body file://cloudformation/cfn-waf-provider.yaml \
                 --parameters \
-                        ParameterKey=S3BucketPrefix,ParameterValue=$(S3_BUCKET_PREFIX) \
+						ParameterKey=S3BucketPrefix,ParameterValue=$(S3_BUCKET_PREFIX) \
                         ParameterKey=CFNCustomProviderZipFileName,ParameterValue=lambdas/$(NAME)-$(VERSION).zip
 	aws --region $(AWS_REGION) cloudformation wait stack-$(COMMAND)-complete  --stack-name $(NAME)
 
