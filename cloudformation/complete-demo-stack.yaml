@@ -1,0 +1,95 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A complete demo stack for the rate-based rule provider including cloudfront, webacl, and rules.
+
+Resources:
+  SqlInjectionMatchSetTestPredicate:
+    Type: AWS::WAF::SqlInjectionMatchSet
+    Properties:
+      Name: completedemosqlinjectionmatchset
+      SqlInjectionMatchTuples:
+      -
+        FieldToMatch:
+          Type: URI
+        TextTransformation: NONE
+  XssMatchSetTrestPredicate:
+    Type: AWS::WAF::XssMatchSet
+    Properties:
+      Name: completedemosizecontraintset
+      XssMatchTuples:
+      -
+        FieldToMatch:
+          Type: BODY
+        TextTransformation: NONE
+  RateBasedRuleWithPredicate1:
+    Type: Custom::RateBasedRule
+    Properties:
+      Name: completedemoratebasedrulepredicate1
+      MetricName: completedemoratebasedrulepredicate1metric
+      RateKey: IP
+      RateLimit: 3245
+      MatchPredicates:
+      -
+        Negated: False
+        Type: XssMatch
+        DataId: !Ref XssMatchSetTrestPredicate
+      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
+  RateBasedRuleWithPredicate2:
+    DependsOn: RateBasedRuleWithPredicate1
+    Type: Custom::RateBasedRule
+    Properties:
+      Name: completedemoratebasedrulepredicate2
+      MetricName: completedemoratebasedrulepredicate2metric
+      RateKey: IP
+      RateLimit: 2800
+      MatchPredicates:
+      -
+        Negated: False
+        Type: SqlInjectionMatch
+        DataId: !Ref SqlInjectionMatchSetTestPredicate
+      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
+  WebACL:
+    DependsOn:
+      - RateBasedRuleWithPredicate1
+      - RateBasedRuleWithPredicate2
+    Type: "AWS::WAF::WebACL"
+    Properties:
+      DefaultAction:
+        Type: ALLOW
+      MetricName: completedemowebaclmetric
+      Name: completedemowebacl
+      Rules:
+      -
+        Action: Block
+        Priority: 1
+        RuleId: !Ref RateBasedRuleWithPredicate1
+      -
+        Action: Block
+        Priority: 2
+        RuleId: !Ref RateBasedRuleWithPredicate2
+  S3Bucket:
+    Type: AWS::S3::Bucket
+  CloudFront:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: False
+          TargetOriginId: webpage
+          ViewerProtocolPolicy : allow-all
+        DefaultRootObject: index.html
+        Enabled: False
+        Origins:
+        -
+          DomainName: !GetAtt S3Bucket.DomainName
+          Id: webpage
+          S3OriginConfig:
+            OriginAccessIdentity:
+              Ref: AWS::NoValue
+        PriceClass: PriceClass_100
+        WebACLId: !Ref WebACL
+      Tags:
+      -
+        Key: stack-name
+        Value: cfn-waf-provider-complete-demo
