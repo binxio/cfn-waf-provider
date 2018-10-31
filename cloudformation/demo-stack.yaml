@@ -11,35 +11,7 @@ Resources:
       RateKey: IP
       RateLimit: 4500
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
-  RateBasedRuleWithPredicate1:
-    DependsOn: RateBasedRule
-    Type: Custom::RateBasedRule
-    Properties:
-      Name: ratebasedrulepredicate1
-      MetricName: ratebasedrulepredicate1metric
-      RateKey: IP
-      RateLimit: 3245
-      MatchPredicates:
-      -
-        Negated: False
-        Type: XssMatch
-        DataId: !ImportValue XssMatchSetTrestPredicate
-      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
-  RateBasedRuleWithPredicate2:
-    DependsOn: RateBasedRuleWithPredicate1
-    Type: Custom::RateBasedRule
-    Properties:
-      Name: ratebasedrulepredicate2
-      MetricName: ratebasedrulepredicate2metric
-      RateKey: IP
-      RateLimit: 2800
-      MatchPredicates:
-      -
-        Negated: False
-        Type: SqlInjectionMatch
-        DataId: !ImportValue SqlInjectionMatchSetTestPredicate
-      -
-        Negated: True
-        Type: ByteMatch
-        DataId: !ImportValue ByteMatchSetTestPredicate
-      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
+
+Outputs:
+  RateBasedRuleName:
+    Value: !Ref RateBasedRule
