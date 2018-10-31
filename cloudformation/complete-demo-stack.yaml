@@ -60,11 +60,13 @@ Resources:
       Name: completedemowebacl
       Rules:
       -
-        Action: Block
+        Action:
+          Type: BLOCK
         Priority: 1
         RuleId: !Ref RateBasedRuleWithPredicate1
       -
-        Action: Block
+        Action:
+          Type: COUNT
         Priority: 2
         RuleId: !Ref RateBasedRuleWithPredicate2
   S3Bucket:
