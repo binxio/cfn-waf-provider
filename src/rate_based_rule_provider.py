@@ -43,7 +43,7 @@ class RateBasedRuleProvider(ResourceProvider):
             response = client.create_rate_based_rule(**kwargs)
 
             self.physical_resource_id = response['Rule']['RuleId']
-            self.set_attribute('Name', self.properties['Name'])
+            self.set_attribute('Name', response)
 
             self.wait_on_status(response['ChangeToken'], current_retry=0)   # wait for the rule to finish creating
 
