@@ -52,7 +52,7 @@ Resources:
     DependsOn:
       - RateBasedRuleWithPredicate1
       - RateBasedRuleWithPredicate2
-    Type: "AWS::WAF::WebACL"
+    Type: AWS::WAF::WebACL
     Properties:
       DefaultAction:
         Type: ALLOW
@@ -63,35 +63,11 @@ Resources:
         Action:
           Type: BLOCK
         Priority: 1
-        RuleId: !Ref RateBasedRuleWithPredicate1
+        RuleId: !GetAtt RateBasedRuleWithPredicate1.Name
       -
         Action:
           Type: COUNT
         Priority: 2
-        RuleId: !Ref RateBasedRuleWithPredicate2
+        RuleId: !GetAtt RateBasedRuleWithPredicate2.Name
   S3Bucket:
     Type: AWS::S3::Bucket
-  CloudFront:
-    Type: AWS::CloudFront::Distribution
-    Properties:
-      DistributionConfig:
-        DefaultCacheBehavior:
-          ForwardedValues:
-            QueryString: False
-          TargetOriginId: webpage
-          ViewerProtocolPolicy : allow-all
-        DefaultRootObject: index.html
-        Enabled: False
-        Origins:
-        -
-          DomainName: !GetAtt S3Bucket.DomainName
-          Id: webpage
-          S3OriginConfig:
-            OriginAccessIdentity:
-              Ref: AWS::NoValue
-        PriceClass: PriceClass_100
-        WebACLId: !Ref WebACL
-      Tags:
-      -
-        Key: stack-name
-        Value: cfn-waf-provider-complete-demo

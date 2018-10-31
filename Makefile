@@ -130,4 +130,8 @@ complete-demo:
 			echo update; else echo create; fi) ; \
 	aws --region $(AWS_REGION) cloudformation $$COMMAND-stack --stack-name $(NAME)-complete-demo \
 		--template-body file://cloudformation/complete-demo-stack.yaml --capabilities CAPABILITY_NAMED_IAM;\
-	aws --region $(AWS_REGION) cloudformation wait stack-$$COMMAND-complete  --stack-name $(NAME)--complete-demo
+	aws --region $(AWS_REGION) cloudformation wait stack-$$COMMAND-complete  --stack-name $(NAME)-complete-demo
+
+delete-complete-demo:
+	aws --region $(AWS_REGION) cloudformation delete-stack --stack-name $(NAME)-complete-demo
+	aws --region $(AWS_REGION) cloudformation wait stack-delete-complete  --stack-name $(NAME)-complete-demo
