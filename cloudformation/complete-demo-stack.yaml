@@ -10,7 +10,7 @@ Resources:
       SqlInjectionMatchTuples:
       -
         FieldToMatch:
-          Type: URI
+          Type: BODY
         TextTransformation: NONE
   XssMatchSetTrestPredicate:
     Type: AWS::WAF::XssMatchSet
@@ -48,6 +48,16 @@ Resources:
         Type: SqlInjectionMatch
         DataId: !Ref SqlInjectionMatchSetTestPredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
+  NormalRule:
+    Type: AWS::WAF::Rule
+    Properties:
+      Name: completedemonormalrule
+      MetricName: completedemonormalrulemetric
+      Predicates:
+      -
+        Negated: False
+        Type: SqlInjectionMatch
+        DataId: !Ref SqlInjectionMatchSetTestPredicate
   WebACL:
     DependsOn:
       - RateBasedRuleWithPredicate1
@@ -63,12 +73,7 @@ Resources:
         Action:
           Type: BLOCK
         Priority: 1
-        RuleId: !Ref RateBasedRuleWithPredicate1
-      -
-        Action:
-          Type: COUNT
-        Priority: 2
-        RuleId: !Ref RateBasedRuleWithPredicate2
+        RuleId: !Ref NormalRule
   CloudFront:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -99,3 +104,5 @@ Resources:
 Outputs:
   RateBasedRuleWithPredicate1Ref:
     Value: !Ref RateBasedRuleWithPredicate1
+  NormalRule:
+    Value: !Ref NormalRule
