@@ -4,6 +4,9 @@ The AWS [Web Application Firewall](https://aws.amazon.com/waf/faq/) (WAF) is a m
 large variety of protection options in the form of rules. These rules should be linked to [web access control lists](https://docs.aws.amazon.com/waf/latest/developerguide/web-acl.html) (ACLs) 
 which in turn are attached to an Amazon Cloudfront or Application Load Balancer. 
 
+**IMPORTANT:** It is currently not possible to attach rate-based rules to a Web ACL using CloudFormation. Until this
+is possible this project is on hold.
+
 *Note*: This provider was created for and is currently only tested for the CloudFront variant, the regional variant 
 should also work for basic usage.
 
