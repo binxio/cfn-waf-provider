@@ -105,31 +105,30 @@ delete-provider:
 	aws --region $(AWS_REGION) cloudformation delete-stack --stack-name $(NAME)
 	aws --region $(AWS_REGION) cloudformation wait stack-delete-complete  --stack-name $(NAME)
 
-demo:
-	COMMAND=$(shell if aws --region $(AWS_REGION) cloudformation get-template-summary --stack-name $(NAME)-predicates-demo >/dev/null 2>&1; then \
+demo: deploy-demo-predicates
+	-COMMAND=$(shell if aws --region $(AWS_REGION) cloudformation get-template-summary --stack-name $(NAME)-demo >/dev/null 2>&1; then \
+        			echo update; else echo create; fi) ; \
+    	aws --region $(AWS_REGION) cloudformation $$COMMAND-stack --stack-name $(NAME)-demo \
+    	 	--template-body file://cloudformation/demo-stack.yaml --capabilities CAPABILITY_NAMED_IAM
+
+deploy-demo-predicates:
+	-COMMAND=$(shell if aws --region $(AWS_REGION) cloudformation get-template-summary --stack-name $(NAME)-predicates-demo >/dev/null 2>&1; then \
 			echo update; else echo create; fi) ; \
-	aws --region $(AWS_REGION) cloudformation $$COMMAND-stack --stack-name $(NAME)-predicates-demo \
-		--template-body file://cloudformation/demo-predicates-stack.yaml --capabilities CAPABILITY_NAMED_IAM;\
-	aws --region $(AWS_REGION) cloudformation wait stack-$$COMMAND-complete  --stack-name $(NAME)-predicates-demo
+	aws --region $(AWS_REGION) cloudformation $$COMMAND-stack --stack-name $(NAME)-predicates-demo --template-body file://cloudformation/demo-predicates-stack.yaml --capabilities CAPABILITY_NAMED_IAM
 
-	COMMAND=$(shell if aws --region $(AWS_REGION) cloudformation get-template-summary --stack-name $(NAME)-demo >/dev/null 2>&1; then \
-			echo update; else echo create; fi) ; \
-	aws --region $(AWS_REGION) cloudformation $$COMMAND-stack --stack-name $(NAME)-demo \
-		--template-body file://cloudformation/demo-stack.yaml --capabilities CAPABILITY_NAMED_IAM;\
-	aws --region $(AWS_REGION) cloudformation wait stack-$$COMMAND-complete  --stack-name $(NAME)-demo
-
-delete-demo:
-	aws --region $(AWS_REGION) cloudformation delete-stack --stack-name $(NAME)-demo
-	aws --region $(AWS_REGION) cloudformation wait stack-delete-complete  --stack-name $(NAME)-demo
-
+delete-demo: delete-demo-stack
 	aws --region $(AWS_REGION) cloudformation delete-stack --stack-name $(NAME)-predicates-demo
 	aws --region $(AWS_REGION) cloudformation wait stack-delete-complete  --stack-name $(NAME)-predicates-demo
+
+delete-demo-stack:
+	aws --region $(AWS_REGION) cloudformation delete-stack --stack-name $(NAME)-demo
+	aws --region $(AWS_REGION) cloudformation wait stack-delete-complete  --stack-name $(NAME)-demo
 
 complete-demo:
 	COMMAND=$(shell if aws --region $(AWS_REGION) cloudformation get-template-summary --stack-name $(NAME)-complete-demo >/dev/null 2>&1; then \
 			echo update; else echo create; fi) ; \
 	aws --region $(AWS_REGION) cloudformation $$COMMAND-stack --stack-name $(NAME)-complete-demo \
-		--template-body file://cloudformation/complete-demo-stack.yaml --capabilities CAPABILITY_NAMED_IAM;\
+		--template-body file://cloudformation/complete-demo-stack.yaml --capabilities CAPABILITY_NAMED_IAM ;\
 	aws --region $(AWS_REGION) cloudformation wait stack-$$COMMAND-complete  --stack-name $(NAME)-complete-demo
 
 delete-complete-demo:

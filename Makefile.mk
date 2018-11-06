@@ -26,7 +26,7 @@ TAG=$(shell . $(RELEASE_SUPPORT); getTag)
 SHELL=/bin/bash
 
 .PHONY: pre-build do-build post-build build release patch-release minor-release major-release tag check-status check-release showver \
-	push do-push post-push
+	push do-push post-push demo deploy-demo-predicates delete-demo delete-demo-stack complete-demo delete-complete-demo
 
 build: pre-build do-build post-build
 

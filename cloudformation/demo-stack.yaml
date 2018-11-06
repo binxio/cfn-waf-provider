@@ -3,6 +3,15 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Demo stack for the rate-based rule provider
 
 Resources:
+  NormalRule:
+    Type: AWS::WAF::Rule
+    Properties:
+      Name: demonormalrule
+      MetricName: demonormalrulemetric
+      Predicates:
+      - Negated: False
+        Type: SqlInjectionMatch
+        DataId: !ImportValue SqlInjectionMatchSetTestPredicate
   RateBasedRule:
     Type: Custom::RateBasedRule
     Properties:
@@ -43,7 +52,23 @@ Resources:
         Type: ByteMatch
         DataId: !ImportValue ByteMatchSetTestPredicate
       ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-waf-provider'
+  WebACL:
+    DependsOn:
+    - RateBasedRuleWithPredicate1
+    Type: AWS::WAF::WebACL
+    Properties:
+      DefaultAction:
+        Type: ALLOW
+      MetricName: demowebaclmetric
+      Name: demowebacl
+      Rules:
+      - Action:
+          Type: BLOCK
+        Priority: 1
+        RuleId: !Ref NormalRule
 
 Outputs:
   RateBasedRuleRef:
     Value: !Ref RateBasedRule
+  NormalRuleRef:
+    Value: !Ref NormalRule
