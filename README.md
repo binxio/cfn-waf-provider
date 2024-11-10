@@ -1,3 +1,6 @@
+Deprecated Nov 2024 -> See [AWS::WAF::Rule](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-waf-rule.html)
+
+
 # WAF Custom Provider with Rate-based Rule Support
 
 The AWS [Web Application Firewall](https://aws.amazon.com/waf/faq/) (WAF) is a managed firewall service that supports a 
